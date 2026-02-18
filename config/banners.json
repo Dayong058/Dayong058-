@@ -1,0 +1,46 @@
+{
+  "list": [
+    {
+      "id": "welcome1",
+      "img": "/images/ome-main.webp",
+      "title": "新客下单立减",
+      "link": "/apps/takeout/entry.html?v=20260208-main-qq",
+      "badge": "限时",
+      "place": "welcome",
+      "active": true
+    },
+    {
+      "id": "welcome2",
+      "img": "/images/welcome-sub.webp",
+      "title": "积分翻倍日",
+      "link": "/apps/takeout/entry.html?v=20260208-main-qq",
+      "badge": "今日",
+      "place": "welcome",
+      "active": true
+    },
+    {
+      "id": "carousel1",
+      "img": "/images/banners/banner-01.webp",
+      "title": "首页活动图1",
+      "link": "/apps/takeout/entry.html?v=20260208-main-qq",
+      "place": "home",
+      "active": true
+    },
+    {
+      "id": "carousel2",
+      "img": "/images/banners/banner-02.webp",
+      "title": "首页活动图2",
+      "link": "/apps/takeout/entry.html?v=20260208-main-qq",
+      "place": "home",
+      "active": true
+    },
+    {
+      "id": "carousel3",
+      "img": "/images/banners/banner-03.webp",
+      "title": "首页活动图3",
+      "link": "/apps/takeout/entry.html?v=20260208-main-qq",
+      "place": "home",
+      "active": true
+    }
+  ]
+}

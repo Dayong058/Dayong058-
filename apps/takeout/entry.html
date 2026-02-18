@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>外卖服务入口</title>
+  <style>
+    :root {
+      --bg: #f5f6f8;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --brand: #de1f26;
+      --line: #e5e7eb;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    .shell {
+      height: 100vh;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--card);
+      border-bottom: 1px solid var(--line);
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .title {
+      font-size: 16px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn.primary {
+      background: var(--brand);
+      color: #fff;
+      border-color: var(--brand);
+    }
+
+    .frame-wrap {
+      flex: 1 1 auto;
+      min-height: 0;
+      position: relative;
+      background: #fff;
+    }
+
+    .loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 14px;
+      background: #fff;
+      z-index: 2;
+    }
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid #f0f2f5;
+      border-top-color: var(--brand);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      border: 0;
+      display: block;
+      background: #fff;
+    }
+  </style>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="title">外卖服务</div>
+      <div class="actions">
+        <button id="btnBack" class="btn" type="button">返回</button>
+        <button id="btnHome" class="btn primary" type="button">首页</button>
+      </div>
+    </header>
+    <main class="frame-wrap">
+      <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <div>外卖页面加载中...</div>
+      </div>
+      <iframe id="takeoutFrame" title="外卖业务页面" loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      const QQ_ORIGIN = "https://qq.fangz9999.vip";
+      const QQ_INDEX = `${QQ_ORIGIN}/index.html`;
+      const ALLOWED_HOSTS = [
+        "fangz9999.vip",
+        "qq.fangz9999.vip",
+        "miniapp.fangz9999.vip",
+        "localhost",
+        "127.0.0.1",
+      ];
+      const ALLOWED_HOST_SUFFIXES = ["fangz9999.vip"];
+      const params = new URLSearchParams(window.location.search);
+      const loading = document.getElementById("loading");
+      const frame = document.getElementById("takeoutFrame");
+
+      function safeValue(v) {
+        return String(v || "").trim();
+      }
+
+      function isAllowedHost(hostname) {
+        const host = safeValue(hostname).toLowerCase();
+        if (!host) return false;
+        if (ALLOWED_HOSTS.includes(host)) return true;
+        return ALLOWED_HOST_SUFFIXES.some(
+          (suffix) => host === suffix || host.endsWith(`.${suffix}`)
+        );
+      }
+
+      function shouldOpenDirectInWebView(urlObj) {
+        const q = `${urlObj.pathname} ${urlObj.search} ${urlObj.hash}`.toLowerCase();
+        return /(address|addr|checkout|apply|register|form|contact|mobile|phone|location|map|settle)/i.test(
+          q
+        );
+      }
+
+      function shouldForceTopNavigation(urlObj) {
+        const host = safeValue(urlObj?.hostname).toLowerCase();
+        if (!host) return false;
+        // Keep first-party domains inside current WebApp flow to reduce
+        // the chance of Telegram client handing off to an external browser.
+        if (
+          host === "fangz9999.vip" ||
+          host === "qq.fangz9999.vip" ||
+          host === "miniapp.fangz9999.vip" ||
+          host === "localhost" ||
+          host === "127.0.0.1" ||
+          host.endsWith(".fangz9999.vip")
+        ) {
+          return false;
+        }
+        // Only force top navigation for non-first-party domains.
+        return true;
+      }
+
+      function extractBrokenEntryQueryUrl() {
+        const rawSearch = safeValue(window.location.search).replace(/^\?/, "");
+        if (!rawSearch) return "";
+        const decoded = (() => {
+          try {
+            return decodeURIComponent(rawSearch);
+          } catch {
+            return rawSearch;
+          }
+        })();
+        if (/^https?:\/\//i.test(decoded)) return decoded;
+        return "";
+      }
+
+      function buildQqIndexUrl() {
+        const q = new URLSearchParams();
+        let shop = safeValue(params.get("shop"));
+        let category = safeValue(params.get("category"));
+        let kw = safeValue(params.get("kw"));
+        const v = safeValue(params.get("v"));
+
+        if (!shop && !category && !kw) {
+          const brokenUrl = extractBrokenEntryQueryUrl();
+          if (brokenUrl) {
+            try {
+              const u = new URL(brokenUrl, window.location.origin);
+              shop = safeValue(u.searchParams.get("shop"));
+              category = safeValue(u.searchParams.get("category"));
+              kw = safeValue(u.searchParams.get("kw"));
+            } catch {
+              // keep empty and fallback to QQ_INDEX without filters
+            }
+          }
+        }
+
+        if (shop) q.set("shop", shop);
+        if (category) q.set("category", category);
+        if (kw) q.set("kw", kw);
+        if (v) q.set("v", v);
+
+        const query = q.toString();
+        return query ? `${QQ_INDEX}?${query}` : QQ_INDEX;
+      }
+
+      function resolveTarget() {
+        const rawTarget = safeValue(params.get("target"));
+        if (!rawTarget) return buildQqIndexUrl();
+        try {
+          const u = new URL(rawTarget, QQ_ORIGIN);
+          if (!/^https?:$/i.test(u.protocol)) {
+            alert("已拦截非网页协议链接");
+            return buildQqIndexUrl();
+          }
+          if (!isAllowedHost(u.hostname)) {
+            alert("该域名不在白名单，已拦截访问");
+            return buildQqIndexUrl();
+          }
+          return u.toString();
+        } catch {
+          return buildQqIndexUrl();
+        }
+      }
+
+      function hideLoading() {
+        if (loading) loading.style.display = "none";
+      }
+
+      function bindActions() {
+        const btnBack = document.getElementById("btnBack");
+        const btnHome = document.getElementById("btnHome");
+
+        if (btnBack) {
+          btnBack.addEventListener("click", () => {
+            if (window.history.length > 1) {
+              window.history.back();
+            } else {
+              window.location.assign("/");
+            }
+          });
+        }
+
+        if (btnHome) {
+          btnHome.addEventListener("click", () => {
+            window.location.assign("/");
+          });
+        }
+      }
+
+      function setupTelegram() {
+        if (!window.Telegram || !window.Telegram.WebApp) return;
+        const tg = window.Telegram.WebApp;
+        try {
+          tg.ready();
+          tg.expand();
+          if (tg.BackButton) {
+            tg.BackButton.show();
+            tg.onEvent("backButtonClicked", () => {
+              if (window.history.length > 1) {
+                window.history.back();
+              } else {
+                window.location.assign("/");
+              }
+            });
+          }
+        } catch (err) {
+          console.warn("Telegram WebApp init failed:", err);
+        }
+      }
+
+      bindActions();
+      setupTelegram();
+
+      const target = resolveTarget();
+      try {
+        const targetUrl = new URL(target, QQ_ORIGIN);
+        if (shouldForceTopNavigation(targetUrl)) {
+          window.location.replace(targetUrl.toString());
+          return;
+        }
+        if (shouldOpenDirectInWebView(targetUrl)) {
+          window.location.replace(targetUrl.toString());
+          return;
+        }
+      } catch {
+        // ignore and keep iframe fallback
+      }
+      frame.addEventListener("load", hideLoading);
+      frame.src = target;
+      setTimeout(hideLoading, 4500);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>主站入口 · entry</title>
+  <!-- 你的主域名公共样式/脚本继续按原项目引入；这里仅给出最小可运行壳 -->
+  <link rel="stylesheet" href="/asset/css/app.css">
+  <style>
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;}
+    .page{display:none;min-height:100vh;box-sizing:border-box;}
+    .page.active{display:block;}
+    .bottom-bar{
+      position:fixed;left:0;right:0;bottom:0;height:56px;
+      display:flex;align-items:center;justify-content:space-around;
+      background:#fff;border-top:1px solid rgba(0,0,0,.08);
+      padding-bottom:env(safe-area-inset-bottom);z-index:9999;
+    }
+    .bottom-bar .btn{
+      flex:1;height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:4px;color:#64748b;font-size:12px;user-select:none;
+    }
+    .bottom-bar .btn.active{color:#2563eb;font-weight:600;}
+    .content-pad{padding-bottom:calc(68px + env(safe-area-inset-bottom));}
+    .home-demo{padding:16px;}
+    .home-demo .hint{color:#475569;line-height:1.6;}
+  </style>
+</head>
+<body>
+  <!-- home-page：这里用占位。上线时，把你主域名首页原逻辑/结构放进来 -->
+  <div id="home-page" class="page active content-pad">
+    <div class="home-demo">
+      <h2 style="margin:0 0 8px;">首页</h2>
+      <div class="hint">
+        这里是 entry.html 的“首页容器”。<br>
+        你现有的主域名首页逻辑（原 index.html 的所有结构与脚本）需要放到这个容器里（或通过 fetch 注入）。<br>
+        底部栏点击“活动”会在同一页面内切换到幸运转轮，不会打开外部浏览器。
+      </div>
+    </div>
+  </div>
+
+  <!-- activity-page：直接内嵌幸运转轮（避免 iframe 跨页导致 Telegram 外跳） -->
+  <div id="activity-page" class="page content-pad"></div>
+
+  <nav class="bottom-bar" id="bottom-bar">
+    <div class="btn active" data-page="home-page">首页</div>
+    <div class="btn" data-page="activity-page">活动</div>
+  </nav>
+
+  <script>
+    function showPage(id){
+      document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+      const el=document.getElementById(id);
+      if (el) el.classList.add('active');
+      document.querySelectorAll('#bottom-bar .btn').forEach(b=>{
+        b.classList.toggle('active', b.getAttribute('data-page')===id);
+      });
+      // 首次进入活动页时加载 activity.html 并执行其中脚本
+      if(id==='activity-page') loadActivityOnce();
+      history.replaceState(null, '', '?page=' + encodeURIComponent(id));
+    }
+
+    let __activityLoaded=false;
+    async function loadActivityOnce(){
+      if(__activityLoaded) return;
+      __activityLoaded=true;
+      const box=document.getElementById('activity-page');
+      const resp=await fetch('/activity.html', {cache:'no-cache'}).catch(()=>null);
+      if(!resp || !resp.ok){ box.innerHTML='<div style="padding:16px;color:#ef4444;">活动页加载失败：请确认 activity.html 已部署到站点根目录</div>'; return; }
+      const html=await resp.text();
+      // 只取 body 内容插入（避免嵌套 HTML）
+      const m=html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+      box.innerHTML = m ? m[1] : html;
+      // 重新执行 activity.html 里的脚本（简单处理：把 script 标签重新创建）
+      box.querySelectorAll('script').forEach(old=>{
+        const s=document.createElement('script');
+        if(old.src) s.src=old.src; else s.textContent=old.textContent;
+        document.body.appendChild(s);
+        old.remove();
+      });
+    }
+
+    // 底部栏点击
+    document.getElementById('bottom-bar').addEventListener('click', (e)=>{
+      const btn=e.target.closest('.btn'); if(!btn) return;
+      showPage(btn.getAttribute('data-page'));
+    });
+
+    // 首屏路由：?page=activity-page
+    (function(){
+      const page=(new URLSearchParams(location.search).get('page')||'home-page').trim();
+      if(page==='activity' ) showPage('activity-page');
+      else if(page==='activity-page' || page==='home-page') showPage(page);
+      else showPage('home-page');
+    })();
+  </script>
+</body>
+</html>

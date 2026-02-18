@@ -1,0 +1,32 @@
+[
+  {
+    "id": 101,
+    "categoryId": 1,
+    "name": "轻奢大床房",
+    "desc": "安静｜干净｜采光好",
+    "price": 199,
+    "cover": "https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=800",
+    "active": true,
+    "sort": 1
+  },
+  {
+    "id": 102,
+    "categoryId": 2,
+    "name": "舒适大床房",
+    "desc": "适合商务出行｜高速WiFi",
+    "price": 239,
+    "cover": "https://images.unsplash.com/photo-1560067174-8943bd3f8c4e?w=800",
+    "active": true,
+    "sort": 2
+  },
+  {
+    "id": 103,
+    "categoryId": 3,
+    "name": "家庭套房",
+    "desc": "两室｜适合亲子｜更大空间",
+    "price": 329,
+    "cover": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800",
+    "active": true,
+    "sort": 3
+  }
+]

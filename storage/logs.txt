@@ -1,0 +1,98 @@
+[2026-01-27T02:55:30.398Z] GET /api/banners
+SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at D:\telegram-bot\主域名站\server.js:38:26
+    at Layer.handle [as handle_request] (D:\telegram-bot\主域名站\node_modules\express\lib\router\layer.js:95:5)
+    at next (D:\telegram-bot\主域名站\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (D:\telegram-bot\主域名站\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (D:\telegram-bot\主域名站\node_modules\express\lib\router\layer.js:95:5)
+    at D:\telegram-bot\主域名站\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (D:\telegram-bot\主域名站\node_modules\express\lib\router\index.js:346:12)
+    at next (D:\telegram-bot\主域名站\node_modules\express\lib\router\index.js:280:10)
+    at jsonParser (D:\telegram-bot\主域名站\node_modules\body-parser\lib\types\json.js:113:7)
+{}
+---
+[2026-01-27T08:50:51.297Z] GET /api/banners
+SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at D:\telegram-bot\主域名站\server.js:38:26
+    at Layer.handle [as handle_request] (D:\telegram-bot\主域名站\node_modules\express\lib\router\layer.js:95:5)
+    at next (D:\telegram-bot\主域名站\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (D:\telegram-bot\主域名站\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (D:\telegram-bot\主域名站\node_modules\express\lib\router\layer.js:95:5)
+    at D:\telegram-bot\主域名站\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (D:\telegram-bot\主域名站\node_modules\express\lib\router\index.js:346:12)
+    at next (D:\telegram-bot\主域名站\node_modules\express\lib\router\index.js:280:10)
+    at jsonParser (D:\telegram-bot\主域名站\node_modules\body-parser\lib\types\json.js:113:7)
+{}
+---
+[2026-01-27T11:16:12.277Z] GET /api/banners
+SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at D:\telegram-bot\主域名站\server.js:38:26
+    at Layer.handle [as handle_request] (D:\telegram-bot\主域名站\node_modules\express\lib\router\layer.js:95:5)
+    at next (D:\telegram-bot\主域名站\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (D:\telegram-bot\主域名站\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (D:\telegram-bot\主域名站\node_modules\express\lib\router\layer.js:95:5)
+    at D:\telegram-bot\主域名站\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (D:\telegram-bot\主域名站\node_modules\express\lib\router\index.js:346:12)
+    at next (D:\telegram-bot\主域名站\node_modules\express\lib\router\index.js:280:10)
+    at jsonParser (D:\telegram-bot\主域名站\node_modules\body-parser\lib\types\json.js:113:7)
+{}
+---
+[2026-01-27T11:21:20.716Z] GET /api/banners
+SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at D:\telegram-bot\主域名站\server.js:38:26
+    at Layer.handle [as handle_request] (D:\telegram-bot\主域名站\node_modules\express\lib\router\layer.js:95:5)
+    at next (D:\telegram-bot\主域名站\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (D:\telegram-bot\主域名站\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (D:\telegram-bot\主域名站\node_modules\express\lib\router\layer.js:95:5)
+    at D:\telegram-bot\主域名站\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (D:\telegram-bot\主域名站\node_modules\express\lib\router\index.js:346:12)
+    at next (D:\telegram-bot\主域名站\node_modules\express\lib\router\index.js:280:10)
+    at jsonParser (D:\telegram-bot\主域名站\node_modules\body-parser\lib\types\json.js:113:7)
+{}
+---
+[2026-01-27T11:24:31.331Z] GET /api/banners
+SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at D:\telegram-bot\主域名站\server.js:38:26
+    at Layer.handle [as handle_request] (D:\telegram-bot\主域名站\node_modules\express\lib\router\layer.js:95:5)
+    at next (D:\telegram-bot\主域名站\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (D:\telegram-bot\主域名站\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (D:\telegram-bot\主域名站\node_modules\express\lib\router\layer.js:95:5)
+    at D:\telegram-bot\主域名站\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (D:\telegram-bot\主域名站\node_modules\express\lib\router\index.js:346:12)
+    at next (D:\telegram-bot\主域名站\node_modules\express\lib\router\index.js:280:10)
+    at jsonParser (D:\telegram-bot\主域名站\node_modules\body-parser\lib\types\json.js:113:7)
+{}
+---
+[2026-01-27T11:31:15.172Z] GET /api/banners
+SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at D:\telegram-bot\主域名站\server.js:38:26
+    at Layer.handle [as handle_request] (D:\telegram-bot\主域名站\node_modules\express\lib\router\layer.js:95:5)
+    at next (D:\telegram-bot\主域名站\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (D:\telegram-bot\主域名站\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (D:\telegram-bot\主域名站\node_modules\express\lib\router\layer.js:95:5)
+    at D:\telegram-bot\主域名站\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (D:\telegram-bot\主域名站\node_modules\express\lib\router\index.js:346:12)
+    at next (D:\telegram-bot\主域名站\node_modules\express\lib\router\index.js:280:10)
+    at jsonParser (D:\telegram-bot\主域名站\node_modules\body-parser\lib\types\json.js:113:7)
+{}
+---
+[2026-01-27T11:31:33.936Z] GET /api/banners
+SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at D:\telegram-bot\主域名站\server.js:38:26
+    at Layer.handle [as handle_request] (D:\telegram-bot\主域名站\node_modules\express\lib\router\layer.js:95:5)
+    at next (D:\telegram-bot\主域名站\node_modules\express\lib\router\route.js:149:13)
+    at Route.dispatch (D:\telegram-bot\主域名站\node_modules\express\lib\router\route.js:119:3)
+    at Layer.handle [as handle_request] (D:\telegram-bot\主域名站\node_modules\express\lib\router\layer.js:95:5)
+    at D:\telegram-bot\主域名站\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (D:\telegram-bot\主域名站\node_modules\express\lib\router\index.js:346:12)
+    at next (D:\telegram-bot\主域名站\node_modules\express\lib\router\index.js:280:10)
+    at jsonParser (D:\telegram-bot\主域名站\node_modules\body-parser\lib\types\json.js:113:7)
+{}
+---

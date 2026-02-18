@@ -1,0 +1,37 @@
+[
+    {
+        "id": 1,
+        "emoji": "🎁",
+        "text": "新用户专享福利！\n注册即送100元优惠券\n限时领取，先到先得",
+        "link": "https://example.com/register",
+        "color": "#ff6b6b"
+    },
+    {
+        "id": 2,
+        "emoji": "💰",
+        "text": "限时特惠！全场5折起\n爆款商品直降千元\n仅限今日，错过不再",
+        "link": "https://example.com/sale",
+        "color": "#4ecdc4"
+    },
+    {
+        "id": 3,
+        "emoji": "🚚",
+        "text": "全场满199元包邮\n支持全国快递配送\n48小时内极速发货",
+        "link": "https://example.com/shipping",
+        "color": "#45b7d1"
+    },
+    {
+        "id": 4,
+        "emoji": "🎉",
+        "text": "会员升级福利\nVIP会员享额外9折\n积分可兑换好礼",
+        "link": "https://example.com/vip",
+        "color": "#96ceb4"
+    },
+    {
+        "id": 5,
+        "emoji": "🔥",
+        "text": "限时秒杀活动\n热门商品低至1折\n今晚8点准时开始",
+        "link": "https://example.com/flash-sale",
+        "color": "#ff4757"
+    }
+]

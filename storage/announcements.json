@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "emoji": "🎉",
+    "text": "新用户专享福利！\n注册即领100元优惠券\n限时领取，先到先得！",
+    "link": "/apps/takeout/entry.html?v=20260208-main-qq",
+    "color": "#ff6b6b",
+    "active": true,
+    "priority": 1,
+    "created_at": "2026-02-08T00:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "emoji": "🔥",
+    "text": "限时特惠！全场8折起\n爆款商品直降千元\n仅限今日，错过不再！",
+    "link": "/apps/takeout/index.html?v=20260208-main-qq",
+    "color": "#4ecdc4",
+    "active": true,
+    "priority": 2,
+    "created_at": "2026-02-08T00:00:00.000Z"
+  },
+  {
+    "id": 3,
+    "emoji": "🚚",
+    "text": "全场满99元包邮\n支持全国快递配送\n48小时内极速发货！",
+    "link": "/apps/takeout/entry.html?v=20260208-main-qq",
+    "color": "#45b7d1",
+    "active": true,
+    "priority": 3,
+    "created_at": "2026-02-08T00:00:00.000Z"
+  }
+]

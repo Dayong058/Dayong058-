@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "text": "入住请携带有效证件，感谢配合。",
+    "active": true,
+    "sort": 1
+  },
+  {
+    "id": 2,
+    "text": "支持现金/USDT 到店支付。",
+    "active": true,
+    "sort": 2
+  }
+]

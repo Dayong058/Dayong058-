@@ -1,0 +1,14 @@
+/* Compatibility stylesheet for /public/entry.html. */
+@import url('./hlhs.css');
+@import url('./GB-canvas-turntable.css');
+
+:root {
+  --entry-text: #0f172a;
+  --entry-bg: #f8fafc;
+}
+
+html,
+body {
+  color: var(--entry-text);
+  background: var(--entry-bg);
+}

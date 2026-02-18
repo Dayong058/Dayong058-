@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>公告管理</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #f4f6fb;
+      color: #1f2937;
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    }
+
+    .container {
+      max-width: 920px;
+      margin: 0 auto;
+      display: grid;
+      gap: 16px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, .08);
+      padding: 16px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 24px;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .sub {
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    .preview-wrap {
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .preview-title {
+      background: linear-gradient(90deg, #ef4444, #f97316);
+      color: #fff;
+      padding: 12px 14px;
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .preview-body {
+      min-height: 84px;
+      padding: 12px 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ann-item {
+      position: absolute;
+      inset: 12px 14px auto 14px;
+      opacity: 0;
+      transform: translateY(14px);
+      transition: all .35s ease;
+      line-height: 1.6;
+      cursor: pointer;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .ann-item.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      padding: 10px 14px 14px;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .group {
+      display: grid;
+      gap: 6px;
+    }
+
+    .group.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 13px;
+      color: #334155;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 14px;
+      outline: none;
+      font-family: inherit;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 86px;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: #ef4444;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 8px;
+      padding: 9px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+      background: #0ea5e9;
+    }
+
+    .btn.red {
+      background: #ef4444;
+    }
+
+    .btn.gray {
+      background: #64748b;
+    }
+
+    .btn.green {
+      background: #16a34a;
+    }
+
+    .btn.orange {
+      background: #ea580c;
+    }
+
+    .btn.sm {
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .status {
+      font-size: 13px;
+      color: #475569;
+      margin-top: 6px;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .item {
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid #ef4444;
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #fff;
+    }
+
+    .meta {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #64748b;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .item-actions {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 12px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <section class="card">
+      <h1>公告管理</h1>
+      <div class="sub">读取：GET /api/announcements（ok/list） 新增：POST /api/announcements 编辑/上下线：PATCH /api/announcements/:id
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="preview-wrap">
+        <div class="preview-title">
+          <span>公告预览</span>
+          <span id="scrollStatus" style="font-size:12px;opacity:.9;">自动轮播中</span>
+        </div>
+        <div class="preview-body" id="previewBody"></div>
+        <div class="controls">
+          <button class="btn gray" type="button" id="btnPrev">上一条</button>
+          <button class="btn gray" type="button" id="btnNext">下一条</button>
+          <button class="btn" type="button" id="btnToggle">暂停/继续</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 id="formTitle">新增公告</h2>
+      <input id="editId" type="hidden" value="" />
+      <div class="grid">
+        <div class="group">
+          <label for="emojiInput">图标（可选）</label>
+          <input id="emojiInput" type="text" value="公告" placeholder="例如：公告" />
+        </div>
+        <div class="group">
+          <label for="colorInput">颜色</label>
+          <input id="colorInput" type="color" value="#ef4444" style="height:40px;padding:2px;" />
+        </div>
+        <div class="group full">
+          <label for="textInput">公告内容（支持换行）</label>
+          <textarea id="textInput" placeholder="请输入公告内容"></textarea>
+        </div>
+        <div class="group full">
+          <label for="linkInput">跳转链接（可选）</label>
+          <input id="linkInput" type="text" value="#" placeholder="https://example.com" />
+        </div>
+        <div class="group">
+          <label for="priorityInput">优先级（数字越小越靠前）</label>
+          <input id="priorityInput" type="number" value="99" min="1" max="999" />
+        </div>
+        <div class="group">
+          <label for="tokenInput">写入令牌（可选）</label>
+          <input id="tokenInput" type="text" placeholder="WRITE_API_TOKEN" />
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px;">
+        <button class="btn red" type="button" id="btnSubmit">提交新增</button>
+        <button class="btn orange" type="button" id="btnCancelEdit" style="display:none;">取消编辑</button>
+        <button class="btn" type="button" id="btnRefresh">刷新列表</button>
+        <button class="btn gray" type="button" id="btnTest">测试 API</button>
+      </div>
+      <div class="status" id="apiStatus">API 状态：待检测</div>
+    </section>
+
+    <section class="card">
+      <h2>公告列表</h2>
+      <div class="list" id="announcementList"></div>
+    </section>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin;
+    let announcements = [];
+    let currentIndex = 0;
+    let timer = null;
+    let autoPlay = true;
+
+    function getWriteToken() {
+      const fromInput = (document.getElementById("tokenInput")?.value || "").trim();
+      const fromLocal = (localStorage.getItem("WRITE_API_TOKEN") || "").trim();
+      const token = fromInput || fromLocal;
+      if (token) localStorage.setItem("WRITE_API_TOKEN", token);
+      return token;
+    }
+
+    function authHeaders() {
+      const token = getWriteToken();
+      if (!token) return {};
+      return { "x-api-token": token };
+    }
+
+    function normalizeListPayload(payload) {
+      if (!payload) return [];
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload.list)) return payload.list;
+      if (Array.isArray(payload.announcements)) return payload.announcements;
+      if (Array.isArray(payload.data)) return payload.data;
+      if (Array.isArray(payload.data?.list)) return payload.data.list;
+      return [];
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function setFormMode(editing, item = null) {
+      const formTitle = document.getElementById("formTitle");
+      const editId = document.getElementById("editId");
+      const submit = document.getElementById("btnSubmit");
+      const cancel = document.getElementById("btnCancelEdit");
+
+      if (!editing) {
+        formTitle.textContent = "新增公告";
+        submit.textContent = "提交新增";
+        cancel.style.display = "none";
+        editId.value = "";
+        document.getElementById("emojiInput").value = "公告";
+        document.getElementById("textInput").value = "";
+        document.getElementById("linkInput").value = "#";
+        document.getElementById("colorInput").value = "#ef4444";
+        document.getElementById("priorityInput").value = "99";
+        return;
+      }
+
+      formTitle.textContent = `编辑公告 #${item.id}`;
+      submit.textContent = "保存修改";
+      cancel.style.display = "inline-block";
+      editId.value = String(item.id);
+      document.getElementById("emojiInput").value = item.emoji || "公告";
+      document.getElementById("textInput").value = item.text || "";
+      document.getElementById("linkInput").value = item.link || "#";
+      document.getElementById("colorInput").value = item.color || "#ef4444";
+      document.getElementById("priorityInput").value = String(item.priority ?? 99);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function collectFormData() {
+      return {
+        emoji: (document.getElementById("emojiInput").value || "公告").trim(),
+        text: (document.getElementById("textInput").value || "").trim(),
+        link: (document.getElementById("linkInput").value || "#").trim(),
+        color: (document.getElementById("colorInput").value || "#ef4444").trim(),
+        priority: Number(document.getElementById("priorityInput").value || 99),
+      };
+    }
+
+    async function testAPI() {
+      const statusEl = document.getElementById("apiStatus");
+      try {
+        const resp = await fetch(`${API_BASE}/api/test`, { cache: "no-store" });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data?.msg || `HTTP ${resp.status}`);
+        statusEl.textContent = `API 状态：正常（${data.timestamp || "OK"}）`;
+        statusEl.style.color = "#16a34a";
+      } catch (err) {
+        statusEl.textContent = `API 状态：异常（${err.message}）`;
+        statusEl.style.color = "#dc2626";
+      }
+    }
+
+    async function loadAnnouncements() {
+      try {
+        const resp = await fetch(`${API_BASE}/api/announcements?active_only=false&limit=100`, { cache: "no-store" });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data?.msg || `HTTP ${resp.status}`);
+        announcements = normalizeListPayload(data)
+          .map((x, idx) => ({
+            id: x?.id ?? idx + 1,
+            emoji: String(x?.emoji || "公告"),
+            text: String(x?.text || x?.title || "").trim(),
+            link: String(x?.link || "#").trim(),
+            color: String(x?.color || "#ef4444"),
+            active: x?.active !== false,
+            priority: Number(x?.priority ?? x?.sort ?? 99),
+            createdAt: x?.createdAt || x?.created_at || "",
+          }))
+          .filter((x) => x.text)
+          .sort((a, b) => Number(a.priority || 99) - Number(b.priority || 99));
+      } catch (err) {
+        announcements = [];
+      }
+
+      if (currentIndex >= announcements.length) currentIndex = 0;
+      renderPreview();
+      renderList();
+    }
+
+    function renderPreview() {
+      const root = document.getElementById("previewBody");
+      root.innerHTML = "";
+
+      const activeList = announcements.filter((x) => x.active !== false);
+      if (!activeList.length) {
+        root.innerHTML = `<div class="ann-item active">暂无启用中的公告</div>`;
+        return;
+      }
+
+      activeList.forEach((item) => {
+        const el = document.createElement("div");
+        el.className = "ann-item";
+        el.style.color = item.color || "#334155";
+        el.textContent = `${item.emoji} ${item.text}`;
+        el.onclick = () => {
+          if (item.link && item.link !== "#") window.open(item.link, "_blank");
+        };
+        root.appendChild(el);
+      });
+
+      const nodes = document.querySelectorAll(".ann-item");
+      if (nodes.length) {
+        const idx = currentIndex % nodes.length;
+        nodes[idx].classList.add("active");
+        currentIndex = idx;
+      }
+    }
+
+    function next() {
+      const nodes = document.querySelectorAll(".ann-item");
+      if (nodes.length <= 1) return;
+      nodes.forEach((n) => n.classList.remove("active"));
+      currentIndex = (currentIndex + 1) % nodes.length;
+      nodes[currentIndex].classList.add("active");
+    }
+
+    function prev() {
+      const nodes = document.querySelectorAll(".ann-item");
+      if (nodes.length <= 1) return;
+      nodes.forEach((n) => n.classList.remove("active"));
+      currentIndex = (currentIndex - 1 + nodes.length) % nodes.length;
+      nodes[currentIndex].classList.add("active");
+    }
+
+    function startAuto() {
+      if (timer) clearInterval(timer);
+      timer = setInterval(next, 2200);
+      autoPlay = true;
+      document.getElementById("scrollStatus").textContent = "自动轮播中";
+    }
+
+    function toggleAuto() {
+      if (autoPlay) {
+        if (timer) clearInterval(timer);
+        autoPlay = false;
+        document.getElementById("scrollStatus").textContent = "已暂停";
+      } else {
+        startAuto();
+      }
+    }
+
+    async function submitForm() {
+      const editId = (document.getElementById("editId").value || "").trim();
+      const form = collectFormData();
+      if (!form.text) {
+        alert("请输入公告内容");
+        return;
+      }
+
+      try {
+        const isEdit = !!editId;
+        const url = isEdit
+          ? `${API_BASE}/api/announcements/${encodeURIComponent(editId)}`
+          : `${API_BASE}/api/announcements`;
+        const method = isEdit ? "PATCH" : "POST";
+
+        const resp = await fetch(url, {
+          method,
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeaders(),
+          },
+          body: JSON.stringify({
+            ...form,
+            ...(isEdit ? {} : { active: true }),
+          }),
+        });
+        const data = await resp.json();
+        if (!resp.ok || !data?.ok) throw new Error(data?.msg || `HTTP ${resp.status}`);
+
+        alert(isEdit ? "公告修改成功" : "公告新增成功");
+        setFormMode(false);
+        await loadAnnouncements();
+      } catch (err) {
+        alert(`提交失败：${err.message}`);
+      }
+    }
+
+    async function patchAnnouncement(id, payload) {
+      const resp = await fetch(`${API_BASE}/api/announcements/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders(),
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data?.ok) throw new Error(data?.msg || `HTTP ${resp.status}`);
+      return data;
+    }
+
+    async function toggleAnnouncement(id, nextActive) {
+      try {
+        await patchAnnouncement(id, { active: nextActive });
+        await loadAnnouncements();
+      } catch (err) {
+        alert(`状态更新失败：${err.message}`);
+      }
+    }
+
+    function beginEdit(id) {
+      const item = announcements.find((x) => String(x.id) === String(id));
+      if (!item) return;
+      setFormMode(true, item);
+    }
+
+    function renderList() {
+      const root = document.getElementById("announcementList");
+      if (!announcements.length) {
+        root.innerHTML = `<div class="item">暂无公告数据</div>`;
+        return;
+      }
+
+      root.innerHTML = announcements
+        .map((it) => {
+          const oneLine = String(it.text || "").split("\n")[0];
+          return `
+            <div class="item" style="border-left-color:${escapeHtml(it.color || "#ef4444")}">
+              <div><strong>${escapeHtml(it.emoji || "公告")} ${escapeHtml(oneLine)}</strong></div>
+              <div class="meta">
+                <span>ID: ${escapeHtml(it.id)}</span>
+                <span>优先级: ${escapeHtml(it.priority)}</span>
+                <span>状态: ${it.active ? "启用" : "停用"}</span>
+                <span>链接: ${escapeHtml(it.link || "#")}</span>
+              </div>
+              <div class="item-actions">
+                <button class="btn sm orange" type="button" data-edit="${escapeHtml(it.id)}">编辑</button>
+                <button class="btn sm ${it.active ? "gray" : "green"}" type="button" data-toggle="${escapeHtml(it.id)}" data-next="${it.active ? "0" : "1"}">${it.active ? "停用" : "启用"}</button>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+
+      root.querySelectorAll("[data-edit]").forEach((btn) => {
+        btn.addEventListener("click", () => beginEdit(btn.dataset.edit));
+      });
+      root.querySelectorAll("[data-toggle]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          toggleAnnouncement(btn.dataset.toggle, btn.dataset.next === "1");
+        });
+      });
+    }
+
+    document.getElementById("btnPrev").addEventListener("click", prev);
+    document.getElementById("btnNext").addEventListener("click", next);
+    document.getElementById("btnToggle").addEventListener("click", toggleAuto);
+    document.getElementById("btnTest").addEventListener("click", testAPI);
+    document.getElementById("btnRefresh").addEventListener("click", loadAnnouncements);
+    document.getElementById("btnSubmit").addEventListener("click", submitForm);
+    document.getElementById("btnCancelEdit").addEventListener("click", () => setFormMode(false));
+
+    (async function init() {
+      const saved = localStorage.getItem("WRITE_API_TOKEN");
+      if (saved) document.getElementById("tokenInput").value = saved;
+      setFormMode(false);
+      await testAPI();
+      await loadAnnouncements();
+      startAuto();
+    })();
+  </script>
+</body>
+
+</html>

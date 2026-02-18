@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=0">
+  <base href="/">
+  <title>房总生活服务平台</title>
+  <link rel="stylesheet" href="/fangz_home.css?v=20260215-home-rebuild-1">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script>
+    (function () {
+      try {
+        var params = new URLSearchParams(location.search || "");
+        var tab = String(params.get("tab") || "").trim();
+        if (tab === "hotel/admin") {
+          // 保留 key（如果你用 query 方式传 admin key）
+          var key = params.get("key");
+          var to = "/hotel-admin.html" + (key ? ("?key=" + encodeURIComponent(key)) : "");
+          location.replace(to);
+        }
+      } catch (e) { }
+    })();
+  </script>
+
+  <style>
+    html,
+    body {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
+      min-height: 100vh;
+      padding-bottom: calc(76px + env(safe-area-inset-bottom));
+      box-sizing: border-box;
+    }
+
+    body.tab-activity {
+      padding-bottom: 0 !important;
+      overflow-y: hidden;
+    }
+
+    body.welcome-active .header {
+      display: none !important;
+    }
+
+    .page-hidden {
+      display: none !important;
+    }
+
+    #activityPageInline,
+    #hotelPageInline {
+      min-height: calc(100vh - 64px);
+      padding-bottom: 0;
+      overflow: hidden;
+    }
+
+    body.tab-activity #activityPageInline {
+      height: calc(100dvh - 76px);
+      min-height: calc(100dvh - 76px);
+    }
+
+    body.tab-activity #activityPageInline iframe {
+      height: 100% !important;
+      min-height: 100% !important;
+    }
+
+    #myPageInline {
+      min-height: calc(100vh - 68px);
+      padding-bottom: calc(68px + env(safe-area-inset-bottom));
+    }
+
+    #merchantEntryContent.show {
+      display: block !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="welcome-overlay" id="welcomeOverlay">
+    <div class="welcome-content">
+      <div class="welcome-title">房总de生活服务平台</div>
+      <div class="welcome-desc">吃喝玩住行 | 特区 No.1 生活小助手</div>
+      <div class="welcome-banners">
+        <div class="welcome-banner main" id="bannerA">
+          <img src="/images/ome-main.webp" alt="新客下单立减">
+          <div class="banner-caption">
+            <span>新客下单立减</span>
+            <i class="badge">限时</i>
+          </div>
+        </div>
+        <div class="welcome-banner sub" id="bannerB">
+          <img src="/images/welcome-sub.webp" alt="积分翻倍日">
+          <div class="banner-caption">
+            <span>积分翻倍日</span>
+            <i class="badge">今日</i>
+          </div>
+        </div>
+      </div>
+      <button class="main-btn" type="button" onclick="closeWelcome()">领取福利并进入</button>
+      <button class="sub-btn" type="button" onclick="closeWelcome()">先随便逛逛</button>
+      <span class="welcome-close" onclick="closeWelcome()">×</span>
+      <div class="welcome-note">进入即视为同意服务条款与隐私</div>
+    </div>
+  </div>
+
+  <main id="homePageContent">
+    <header class="header">
+      <div class="search-bar">
+        <input id="searchInput" type="text" placeholder="搜索外卖/酒店/招聘/房源">
+        <button class="search-btn" type="button" onclick="doSearch()">搜索</button>
+      </div>
+    </header>
+
+    <section class="biz-entrance-iframe-grid" aria-label="业务入口">
+      <div class="biz-iframe-row">
+        <a class="biz-entry" href="/apps/takeout/merchant-hub.html" aria-label="美食外卖">
+          <div class="biz-card">
+            <img class="biz-icon" src="/images/biz-food.webp" alt="美食外卖">
+            <iframe class="biz-iframe" data-url="/apps/takeout/merchant-hub.html" title="美食外卖"></iframe>
+          </div>
+          <span class="biz-label">美食外卖</span>
+        </a>
+        <a class="biz-entry" href="/hotel.html" data-entry="hotel-booking" aria-label="酒店预订">
+          <div class="biz-card">
+            <img class="biz-icon" src="/images/biz-hotel.webp" alt="酒店预订">
+            <iframe class="biz-iframe" data-url="/hotel.html" title="酒店预订"></iframe>
+          </div>
+          <span class="biz-label">酒店预订</span>
+        </a>
+        <a class="biz-entry" href="https://miniapp.fangz9999.vip" aria-label="房屋信息">
+          <div class="biz-card">
+            <img class="biz-icon" src="/images/biz-house.webp" alt="房屋租售">
+            <iframe class="biz-iframe" data-url="https://miniapp.fangz9999.vip" title="房屋租售"></iframe>
+          </div>
+          <span class="biz-label">房屋信息</span>
+        </a>
+        <a class="biz-entry" href="/apps/takeout/entry.html?tab=used" aria-label="二手物品">
+          <div class="biz-card">
+            <img class="biz-icon" src="/images/biz-item.webp" alt="二手物品">
+            <iframe class="biz-iframe" data-url="/apps/takeout/entry.html?tab=used" title="二手物品"></iframe>
+          </div>
+          <span class="biz-label">二手物品</span>
+        </a>
+        <a class="biz-entry" href="/apps/takeout/entry.html?tab=leisure" aria-label="休闲娱乐">
+          <div class="biz-card">
+            <img class="biz-icon" src="/images/biz-massage.webp" alt="休闲娱乐">
+            <iframe class="biz-iframe" data-url="/apps/takeout/entry.html?tab=leisure" title="休闲娱乐"></iframe>
+          </div>
+          <span class="biz-label">休闲娱乐</span>
+        </a>
+      </div>
+    </section>
+
+    <section id="bannerSlider" class="banner-slider" aria-label="首页轮播"></section>
+
+    <section class="category-section" aria-label="分类入口">
+      <div class="cat-title red">美食分类</div>
+      <div class="cat-grid">
+        <div class="cat-card" role="button" tabindex="0">
+          <div class="cat-circle"><img src="/images/categories/cooked.webp" alt="家常炒菜"></div>
+          <div class="cat-name">家常炒菜</div>
+        </div>
+        <div class="cat-card" role="button" tabindex="0">
+          <div class="cat-circle"><img src="/images/categories/breakfast.webp" alt="营养早餐"></div>
+          <div class="cat-name">营养早餐</div>
+        </div>
+        <div class="cat-card" role="button" tabindex="0">
+          <div class="cat-circle"><img src="/images/categories/hotpot.webp" alt="火锅烧烤"></div>
+          <div class="cat-name">火锅烧烤</div>
+        </div>
+        <div class="cat-card" role="button" tabindex="0">
+          <div class="cat-circle"><img src="/images/categories/snack.webp" alt="风味小吃"></div>
+          <div class="cat-name">风味小吃</div>
+        </div>
+        <div class="cat-card" role="button" tabindex="0">
+          <div class="cat-circle"><img src="/images/categories/drink.webp" alt="奶茶汉堡"></div>
+          <div class="cat-name">奶茶汉堡</div>
+        </div>
+        <div class="cat-card" role="button" tabindex="0">
+          <div class="cat-circle"><img src="/images/categories/fruit1.webp" alt="水果鲜花"></div>
+          <div class="cat-name">水果鲜花</div>
+        </div>
+        <div class="cat-card" role="button" tabindex="0">
+          <div class="cat-circle"><img src="/images/categories/market.webp" alt="商超便利"></div>
+          <div class="cat-name">商超便利</div>
+        </div>
+        <div class="cat-card" role="button" tabindex="0">
+          <div class="cat-circle"><img src="/images/categories/pet.webp" alt="药房宠物"></div>
+          <div class="cat-name">药房宠物</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="func-row" aria-label="统计与签到">
+      <div class="func-stats-grid">
+        <div class="func-stat-chip stat-visit">
+          <span class="stat-title">今日访问</span>
+          <b id="statVisit" class="stat-value">2168</b>
+        </div>
+        <div class="func-stat-chip stat-view">
+          <span class="stat-title">总浏览</span>
+          <b id="statView" class="stat-value">5092</b>
+        </div>
+        <div class="func-stat-chip stat-coupon">
+          <span class="stat-title">今日优惠 <span class="coupon-tip" id="couponTip">?</span></span>
+          <b id="statCoupon" class="stat-value">54</b>
+        </div>
+      </div>
+      <div id="updateTime" class="stats-update"></div>
+      <div class="func-signin">
+        <button class="signin-btn" type="button" onclick="doSignin()">签到</button>
+        <span id="signinMsg" class="signin-message" aria-hidden="true"></span>
+      </div>
+    </section>
+
+    <section class="hot-recommend" aria-label="热门推荐">
+      <div class="hot-title red">热门推荐</div>
+      <div class="hot-cards" id="hotCards"></div>
+    </section>
+
+    <section class="store-section" aria-label="附近商家">
+      <div class="store-title red">附近商家</div>
+      <div class="store-list"></div>
+      <div class="store-more-wrap">
+        <span class="store-more-line"></span>
+        <button class="store-more-btn" type="button">查看更多商家</button>
+        <span class="store-more-line"></span>
+      </div>
+    </section>
+
+    <section class="announcement-bar" aria-label="公告栏">
+      <div class="announcement-title">公告栏</div>
+      <div class="announcement-content" id="announcementContent">
+        欢迎使用房总生活服务平台，更多活动福利持续更新中。
+      </div>
+    </section>
+
+    <section class="merchant-entry" aria-label="商家入口">
+      <div class="entry-header" onclick="toggleMerchantEntry()">
+        <span>商家入口</span>
+        <span class="see-more">展开/收起</span>
+      </div>
+      <div class="entry-content" id="merchantEntryContent">
+        <div class="entry-card">
+          <div class="entry-title">商家入驻</div>
+          <div class="entry-desc">提交资料后可快速开店，接入首页推荐位。</div>
+          <button class="entry-btn" type="button">立即进入</button>
+        </div>
+        <div class="entry-card">
+          <div class="entry-title">商家管理</div>
+          <div class="entry-desc">管理商品、订单和活动数据，查看经营分析。</div>
+          <button class="entry-btn" type="button">立即进入</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section id="activityPageInline" class="page-hidden" aria-label="活动页面容器"></section>
+  <section id="hotelPageInline" class="page-hidden" aria-label="酒店预订页面容器"></section>
+
+  <section id="myPageInline" class="page-hidden" aria-label="我的页面容器">
+    <div class="my-member-page">
+      <div class="my-member-top"><i aria-hidden="true"></i>会员中心</div>
+      <div class="my-member-info-card">
+        <div class="my-member-user">
+          <img src="/images/member/head.png" alt="用户头像">
+          <div class="my-member-name">
+            <p>房总平台用户</p>
+            <span>升级尊享权益，享更多专属优惠</span>
+          </div>
+        </div>
+        <div class="my-member-info">
+          <div class="my-member-item">
+            <p>积分</p><span>0</span>
+          </div>
+          <div class="my-member-item">
+            <p>金币</p><span>920</span>
+          </div>
+          <div class="my-member-item">
+            <p>优惠券</p><span>3</span>
+          </div>
+        </div>
+      </div>
+      <h5 class="my-member-title">我的卡券</h5>
+      <div class="my-member-coupon">
+        <ul>
+          <li class="active">
+            <div class="desc">
+              <p class="type">通用券 3 张</p>
+              <div class="remark">
+                <p>持本券平台商家任意使用。</p>
+                <p>通用券有效期 5 天，不可兑换现金。</p>
+              </div>
+            </div>
+            <div class="limit">全场通用券</div>
+          </li>
+          <li>
+            <div class="desc">
+              <p class="type">商家券 2 张</p>
+              <div class="remark">
+                <p>仅限指定商家店铺使用。</p>
+                <p>专用券有效期 7 天，不可兑换现金。</p>
+              </div>
+            </div>
+            <div class="limit">商家专用券</div>
+          </li>
+          <li>
+            <div class="desc">
+              <p class="type">红包 5 个</p>
+              <div class="remark">
+                <p>下单可抵扣部分支付金额。</p>
+                <p>红包有效期 3 天，不可兑换现金。</p>
+              </div>
+            </div>
+            <div class="limit">我的红包</div>
+          </li>
+          <div class="holder"></div>
+        </ul>
+        <div class="btn">
+          <button type="button">房总之星 · 尊享权益</button>
+          <p>权益说明与专属功能持续完善中</p>
+        </div>
+      </div>
+      <h5 class="my-member-title my-member-perks-title">会员特权</h5>
+      <div class="my-member-perks">
+        <ul>
+          <li><img class="my-perk-icon" src="/images/member/icon-jinbi.png" alt="每日金币">
+            <p>每日金币</p>
+          </li>
+          <li><img class="my-perk-icon" src="/images/member/icon-shenjuan.png" alt="大额神券">
+            <p>大额神券</p>
+          </li>
+          <li><img class="my-perk-icon" src="/images/member/icon-fanli.png" alt="更多返利">
+            <p>更多返利</p>
+          </li>
+          <li><img class="my-perk-icon" src="/images/member/icon-shangpin.png" alt="精选商品">
+            <p>精选商品</p>
+          </li>
+          <li><img class="my-perk-icon" src="/images/member/icon-jisu.png" alt="极速到货">
+            <p>极速到货</p>
+          </li>
+          <li><img class="my-perk-icon" src="/images/member/icon-fenxiang.png" alt="分享赚">
+            <p>分享赚</p>
+          </li>
+          <li><img class="my-perk-icon" src="/images/member/icon-huodong.png" alt="专享活动">
+            <p>专享活动</p>
+          </li>
+          <li><img class="my-perk-icon" src="/images/member/icon-shengri.png" alt="生日折扣">
+            <p>生日折扣</p>
+          </li>
+          <li><img class="my-perk-icon" src="/images/member/icon-tixing.png" alt="上架提醒">
+            <p>上架提醒</p>
+          </li>
+          <li><img class="my-perk-icon" src="/images/member/icon-kefu.png" alt="专属客服">
+            <p>专属客服</p>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <div id="signinRewardModal" class="signin-reward-modal" aria-hidden="true">
+    <div class="signin-reward-mask" onclick="closeSigninRewardModal()"></div>
+    <div class="signin-reward-sheet" role="dialog" aria-modal="true" aria-label="签到结果">
+      <div class="signin-reward-title">签到成功</div>
+      <div class="signin-reward-body">
+        <p id="signinRewardText">已获得奖励</p>
+        <p id="signinRewardStreak">累计签到 1 天</p>
+      </div>
+      <div class="signin-reward-actions">
+        <button type="button" class="reward-btn ghost" onclick="closeSigninRewardModal()">我知道了</button>
+        <button type="button" class="reward-btn solid" onclick="closeSigninRewardModal()">查看优惠券</button>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" aria-label="底部导航">
+    <button class="nav-btn active" type="button" data-tab="home">首页</button>
+    <button class="nav-btn" type="button" data-tab="activity">活动</button>
+    <button class="nav-btn" type="button" data-tab="service">客服</button>
+    <button class="nav-btn" type="button" data-tab="my">我的</button>
+  </nav>
+
+  <script>
+    (function () {
+      function isEditableTarget(el) {
+        if (!el || el.nodeType !== 1) return false;
+        var tag = String(el.tagName || "").toLowerCase();
+        if (tag === "textarea") return true;
+        if (tag === "input") {
+          var t = String(el.type || "").toLowerCase();
+          return !["checkbox", "radio", "button", "submit", "reset", "file", "color", "range", "image", "hidden"].includes(t);
+        }
+        return !!el.isContentEditable;
+      }
+
+      function blockPasteLike(e) {
+        var target = e.target;
+        if (!isEditableTarget(target)) return;
+        e.preventDefault();
+        if (typeof window.showToast === "function") {
+          window.showToast("已禁用粘贴", "warning");
+        }
+      }
+
+      document.addEventListener("paste", blockPasteLike, true);
+      document.addEventListener("drop", blockPasteLike, true);
+      document.addEventListener("beforeinput", function (e) {
+        if (e && e.inputType === "insertFromPaste") blockPasteLike(e);
+      }, true);
+    })();
+  </script>
+  <script src="/fangz.js?v=20260215-home-rebuild-1"></script>
+</body>
+
+</html>

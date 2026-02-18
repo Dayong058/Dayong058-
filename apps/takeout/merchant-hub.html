@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>商家分类详情</title>
+  <style>
+    :root {
+      --bg: #f2f4f8;
+      --bg-main: linear-gradient(180deg, #fff8ef 0%, #fff3f5 45%, #f7f4ff 100%);
+      --card: #ffffff;
+      --red: #de1f26;
+      --red-deep: #bf1118;
+      --text: #1f2937;
+      --sub: #6b7280;
+      --line: #e5e7eb;
+      --gold: #f4b400;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      background: var(--bg-main);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 720px;
+      margin: 0 auto;
+      background: transparent;
+      min-height: 100vh;
+      padding-bottom: 18px;
+    }
+
+    .topbar {
+      background: linear-gradient(180deg, #ee2e33 0%, #dc1f26 100%);
+      padding: 10px 10px 12px;
+      box-shadow: 0 4px 12px rgba(222, 31, 38, 0.28);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+
+    .search-wrap {
+      position: relative;
+      background: #fff;
+      border-radius: 999px;
+      border: 2px solid rgba(255, 255, 255, 0.95);
+      overflow: hidden;
+      height: 42px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #ef4444;
+      font-size: 18px;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 100%;
+      border: none;
+      outline: none;
+      font-size: 15px;
+      color: #374151;
+      padding: 0 86px 0 40px;
+      background: #fff;
+    }
+
+    .search-input::placeholder {
+      color: #9ca3af;
+    }
+
+    .search-btn {
+      position: absolute;
+      right: 4px;
+      top: 4px;
+      height: 34px;
+      min-width: 74px;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #f1494f 0%, #dc1f26 100%);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0 14px;
+    }
+
+    .cat-strip {
+      display: flex;
+      gap: 8px;
+      padding: 10px 8px 8px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .cat-strip::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 8px 2px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      background: var(--bg);
+    }
+
+    .filter-bar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-chip {
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      color: #475569;
+      border-radius: 999px;
+      height: 30px;
+      padding: 0 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .filter-chip.active {
+      border-color: #fecaca;
+      background: #fff1f2;
+      color: #be123c;
+    }
+
+    .filter-chip:hover {
+      background: #f9c9d6;
+      border-color: #f9c9d6;
+      color: #fff;
+    }
+
+    .cat-item {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: #374151;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.05;
+      padding: 3px 2px;
+      border-radius: 10px;
+      transition: background 0.2s ease;
+      flex: 0 0 62px;
+    }
+
+    .cat-item.active {
+      background: #fff1f2;
+      color: #be123c;
+    }
+
+    .cat-icon-wrap {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    .cat-icon-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .list-wrap {
+      padding: 10px 8px 0;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .merchant-card {
+      background: var(--card);
+      border: 1px solid #d9dde5;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .merchant-top {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding: 0;
+    }
+
+    .merchant-media {
+      width: 100%;
+      height: 104px;
+      overflow: hidden;
+    }
+
+    .merchant-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 0;
+      object-fit: cover;
+      object-position: center;
+      background: #eef2f7;
+      display: block;
+      transition: transform 0.25s ease;
+    }
+
+    .merchant-info {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      text-align: left;
+      padding: 8px 8px 4px;
+    }
+
+    .merchant-name-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .merchant-name {
+      font-size: 16px;
+      font-weight: 800;
+      color: #b8860b;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    .merchant-sales {
+      flex: 0 0 auto;
+      font-size: 11px;
+      font-weight: 600;
+      color: #2563eb;
+      line-height: 1.4;
+      white-space: nowrap;
+    }
+
+    .merchant-type {
+      font-size: 14px;
+      color: #475569;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .merchant-rate {
+      font-size: 14px;
+      color: #475569;
+      line-height: 1;
+    }
+
+    .merchant-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.2;
+    }
+
+    .merchant-meta .delivery-fee {
+      color: #16a34a;
+      font-weight: 700;
+    }
+
+    .merchant-meta .eta {
+      color: #dc2626;
+      font-weight: 700;
+    }
+
+    .merchant-meta .min-order {
+      color: #dc2626;
+      font-weight: 700;
+    }
+
+    .merchant-tags {
+      display: flex;
+      gap: 6px;
+      margin-top: 2px;
+      flex-wrap: wrap;
+      min-height: 18px;
+    }
+
+    .tag {
+      font-size: 11px;
+      line-height: 16px;
+      padding: 0 6px;
+      border-radius: 999px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .tag.promo {
+      background: #fff1f2;
+      color: #be123c;
+    }
+
+    .tag.neutral {
+      background: #eef2ff;
+      color: #475569;
+    }
+
+    .stars {
+      color: var(--gold);
+      letter-spacing: 1px;
+    }
+
+    .merchant-btn {
+      display: block;
+      width: calc(100% - 16px);
+      margin: 0 8px 8px;
+      height: 36px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(180deg, #f1494f 0%, #d81e25 100%);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .merchant-card:hover .merchant-img {
+      transform: scale(1.2);
+    }
+
+    .empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      color: #64748b;
+      font-size: 20px;
+      padding: 24px 0;
+    }
+
+    .list-footer {
+      padding: 10px 10px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .list-status {
+      font-size: 13px;
+      color: #64748b;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .list-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    .list-btn {
+      border: 1px solid #d1d5db;
+      background: #fff;
+      color: #334155;
+      border-radius: 999px;
+      height: 34px;
+      padding: 0 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .list-btn.primary {
+      border: none;
+      background: linear-gradient(180deg, #f1494f 0%, #d81e25 100%);
+      color: #fff;
+    }
+
+    .status-card {
+      grid-column: 1 / -1;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 14px 12px;
+      color: #475569;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .status-actions {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .status-btn {
+      border: 1px solid #d1d5db;
+      background: #fff;
+      color: #334155;
+      border-radius: 999px;
+      height: 32px;
+      padding: 0 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .status-btn.primary {
+      border: none;
+      background: linear-gradient(180deg, #f1494f 0%, #d81e25 100%);
+      color: #fff;
+    }
+
+    .skeleton-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .sk-media,
+    .sk-line,
+    .sk-btn {
+      position: relative;
+      overflow: hidden;
+      background: #edf2f7;
+    }
+
+    .sk-media {
+      height: 104px;
+    }
+
+    .sk-content {
+      padding: 8px;
+    }
+
+    .sk-line {
+      height: 12px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+
+    .sk-line.w70 {
+      width: 70%;
+    }
+
+    .sk-line.w55 {
+      width: 55%;
+    }
+
+    .sk-line.w40 {
+      width: 40%;
+    }
+
+    .sk-btn {
+      height: 32px;
+      margin: 8px;
+      border-radius: 8px;
+    }
+
+    .sk-media::after,
+    .sk-line::after,
+    .sk-btn::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+      animation: shimmer 1.2s infinite;
+    }
+
+    @keyframes shimmer {
+      100% {
+        transform: translateX(100%);
+      }
+    }
+
+    .home-fab {
+      position: fixed;
+      left: 12px;
+      bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      width: 54px;
+      height: 54px;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #f1494f 0%, #d81e25 100%);
+      box-shadow: 0 10px 22px rgba(216, 30, 37, 0.45), 0 2px 6px rgba(0, 0, 0, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 120;
+      animation: fabFloat 2.2s ease-in-out infinite;
+    }
+
+    .home-fab svg {
+      width: 26px;
+      height: 26px;
+      stroke: #fff;
+      stroke-width: 2.5;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    @keyframes fabFloat {
+      0% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-2px);
+      }
+
+      100% {
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .merchant-name {
+        font-size: 16px;
+      }
+
+      .merchant-type {
+        font-size: 13px;
+      }
+
+      .merchant-rate {
+        font-size: 13px;
+      }
+
+      .merchant-btn {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input id="searchInput" class="search-input" type="search" placeholder="搜索商家或菜品">
+        <button id="searchBtn" class="search-btn" type="button">搜索</button>
+      </div>
+    </header>
+
+    <section id="categoryStrip" class="cat-strip"></section>
+    <section id="filterBar" class="filter-bar"></section>
+    <section id="merchantList" class="list-wrap"></section>
+    <section id="listFooter" class="list-footer"></section>
+  </div>
+
+  <button id="homeFab" class="home-fab" type="button" aria-label="返回主域名首页">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M3 10.5 12 3l9 7.5"></path>
+      <path d="M6.5 9.8V20h11V9.8"></path>
+      <path d="M10 20v-5h4v5"></path>
+    </svg>
+  </button>
+
+  <script>
+    const CACHE_VERSION = "20260208-main-qq";
+    const QQ_ORIGIN = "https://qq.fangz9999.vip";
+    const DATA_URL_CANDIDATES = [
+      `${QQ_ORIGIN}/api/home/stores`,
+      "/api/home/stores"
+    ];
+
+    const FIXED_CATEGORY_LIST = [
+      "中餐炒菜",
+      "烧烤火锅",
+      "奶茶汉堡",
+      "营养早餐",
+      "风味小吃",
+      "商超便利",
+      "水果",
+      "药房宠物"
+    ];
+
+    const CATEGORY_LABEL_MAP = {
+      "中餐炒菜": "中餐炒菜",
+      "烧烤火锅": "烧烤火锅",
+      "奶茶汉堡": "奶茶汉堡",
+      "营养早餐": "营养早餐",
+      "风味小吃": "风味小吃",
+      "商超便利": "超市便利",
+      "水果": "鲜花蛋糕",
+      "药房宠物": "药房宠物"
+    };
+
+    const CATEGORY_ICON_MAP = {
+      "中餐炒菜": "/images/categories/cooked.webp",
+      "烧烤火锅": "/images/categories/hotpot.webp",
+      "奶茶汉堡": "/images/categories/drink.webp",
+      "营养早餐": "/images/categories/breakfast.webp",
+      "风味小吃": "/images/categories/snack.webp",
+      "商超便利": "/images/categories/market.webp",
+      "水果": "/images/categories/fruit.webp",
+      "药房宠物": "/images/categories/pet.webp"
+    };
+    const DEFAULT_CATEGORY_ICON = "/images/biz-food.webp";
+
+    const state = {
+      all: [],
+      activeCategory: "中餐炒菜",
+      keyword: "",
+      pageSize: 12,
+      visibleCountMap: {},
+      loading: true,
+      loadError: "",
+      sortBy: "smart",
+      onlyPromo: false
+    };
+
+    const FALLBACK_MERCHANTS = [];
+
+    function safeText(v) {
+      return String(v || "").trim();
+    }
+
+    function normalizeSearchText(v) {
+      return safeText(v).toLowerCase().replace(/\s+/g, "");
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function normalizeMediaUrl(raw) {
+      const value = safeText(raw);
+      if (!value) return "";
+      if (/^(?:https?:)?\/\//i.test(value)) {
+        return value.startsWith("//") ? `https:${value}` : value;
+      }
+      const isQqUploadPath =
+        /^\/?apps\/takeout\/uploads\//i.test(value) ||
+        /^\/?uploads\/merchant_apply\//i.test(value);
+      if (isQqUploadPath) {
+        const pathname = value.startsWith("/") ? value : `/${value}`;
+        return `${QQ_ORIGIN}${pathname}`;
+      }
+      return value;
+    }
+
+    function normalizeMerchant(item, idx) {
+      const id = safeText(item.id || item.storeId || item.code || item.merchantId || `store-${idx + 1}`);
+      const name = safeText(item.name || item.storeName || item.merchantName || item.shop_name || item.title) || `商户${idx + 1}`;
+      const descText = safeText(item.desc || item.description || item.intro || item.summary);
+      const descType = descText.split(/[\/|｜]/)[0];
+      const keywordText = `${name} ${descText} ${safeText(item.type)} ${safeText(item.category)}`.toLowerCase();
+      let inferredCategory = "";
+      if (/火锅|烧烤|烤鱼|烤鸭|串串/.test(keywordText)) inferredCategory = "烧烤火锅";
+      else if (/早餐|豆浆|包子|粥|煎饼/.test(keywordText)) inferredCategory = "营养早餐";
+      else if (/奶茶|汉堡|果茶|咖啡/.test(keywordText)) inferredCategory = "奶茶汉堡";
+      else if (/小吃|卤味|炸串|凉皮|披萨/.test(keywordText)) inferredCategory = "风味小吃";
+      else if (/超市|便利|商超|日用/.test(keywordText)) inferredCategory = "商超便利";
+      else if (/水果|鲜花|蛋糕|甜点/.test(keywordText)) inferredCategory = "水果";
+      else if (/药|宠物|诊所|医疗/.test(keywordText)) inferredCategory = "药房宠物";
+      else inferredCategory = "中餐炒菜";
+      const category = safeText(item.type || item.category || item.storeType || item.shop_type || item.merchantType || descType) || "中餐炒菜";
+      const image = normalizeMediaUrl(item.photo || item.image || item.img || item.logo || item.cover) || "/images/store-default1.webp";
+      const tags = Array.isArray(item.tags) ? item.tags : safeText(item.tags).split(/[,\s，、]+/).filter(Boolean);
+      const link = safeText(item.link || item.orderUrl || item.order_url || item.url || item.href);
+      const salesRaw = item.monthSales ?? item.month_sale ?? item.monthlySales ?? item.sales ?? item.salesMonth ?? 0;
+      const monthSales = Number.isFinite(Number(salesRaw)) ? Math.max(0, Number(salesRaw)) : 0;
+      const ratingRaw = item.rating ?? item.score ?? item.star ?? item.stars ?? item.avgScore;
+      const rating = Number.isFinite(Number(ratingRaw)) ? Number(ratingRaw) : NaN;
+      const etaRaw = item.etaMinutes ?? item.eta ?? item.deliverMinutes ?? item.delivery_time ?? item.deliveryTime;
+      const etaMinutes = Number.isFinite(Number(etaRaw)) ? Math.max(5, Number(etaRaw)) : NaN;
+      const deliveryFeeRaw = item.deliveryFee ?? item.shipFee ?? item.shipping_fee ?? item.freight ?? item.delivery_fee;
+      const deliveryFee = Number.isFinite(Number(deliveryFeeRaw)) ? Math.max(0, Number(deliveryFeeRaw)) : NaN;
+      const minOrderRaw = item.minOrder ?? item.minPrice ?? item.startPrice ?? item.minimum_order ?? item.minimumOrder;
+      const minOrder = Number.isFinite(Number(minOrderRaw)) ? Math.max(0, Number(minOrderRaw)) : NaN;
+      const openRaw = item.isOpen ?? item.open ?? item.businessOpen ?? item.status;
+      const isOpen = typeof openRaw === "boolean"
+        ? openRaw
+        : !/closed|休息|打烊|false|0/i.test(String(openRaw ?? ""));
+      const normalizedCategory = FIXED_CATEGORY_LIST.includes(category) ? category : inferredCategory;
+      const searchKeywords = safeText(
+        item.keywords || item.keyword || item.searchKeywords || item.search_keywords || descText
+      );
+      return {
+        id,
+        name,
+        category: normalizedCategory,
+        image,
+        tags,
+        link,
+        monthSales,
+        searchKeywords,
+        rating,
+        etaMinutes,
+        deliveryFee,
+        minOrder,
+        isOpen
+      };
+    }
+
+    function pickMerchantList(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload?.list)) return payload.list;
+      if (Array.isArray(payload?.stores)) return payload.stores;
+      if (Array.isArray(payload?.data)) return payload.data;
+      if (Array.isArray(payload?.data?.list)) return payload.data.list;
+      if (Array.isArray(payload?.data?.stores)) return payload.data.stores;
+      return [];
+    }
+
+    const QQ_ORDER_BASE = "https://qq.fangz9999.vip/index.html";
+    const TAKEOUT_ENTRY_PATH = "/apps/takeout/entry.html";
+
+    function buildTakeoutEntryLink(params = {}) {
+      const query = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        const normalized = safeText(value);
+        if (normalized) query.set(key, normalized);
+      });
+      query.set("v", CACHE_VERSION);
+      return `${TAKEOUT_ENTRY_PATH}?${query.toString()}`;
+    }
+
+    function buildQqOrderLink(shopId) {
+      const sid = safeText(shopId);
+      if (!sid) return `${QQ_ORDER_BASE}`;
+      return `${QQ_ORDER_BASE}?shop=${encodeURIComponent(sid)}`;
+    }
+
+    function normalizeOrderLink(link, id) {
+      let raw = safeText(link);
+      const sid = safeText(id);
+      const fallback = sid
+        ? buildTakeoutEntryLink({ shop: sid })
+        : buildTakeoutEntryLink();
+      if (!raw) return fallback;
+      const brokenMatch = raw.match(
+        /(?:^https?:\/\/[^\/]+)?\/apps\/takeout\/entry\.html\?(https?:\/\/.+)$/i
+      );
+      if (brokenMatch && brokenMatch[1]) {
+        raw = brokenMatch[1];
+      }
+      try {
+        const u = new URL(raw, window.location.origin);
+        const mStore = u.pathname.match(/^\/store\/([^\/?#]+)/i);
+        if (mStore) {
+          return buildTakeoutEntryLink({ shop: mStore[1] });
+        }
+        if (/\/apps\/takeout\/entry\.html$/i.test(u.pathname)) {
+          const shop = u.searchParams.get("shop");
+          if (shop) return buildTakeoutEntryLink({ shop });
+          return sid ? buildTakeoutEntryLink({ shop: sid }) : fallback;
+        }
+        if (/\/apps\/takeout\/merchant-hub\.html$/i.test(u.pathname)) {
+          return sid ? buildTakeoutEntryLink({ shop: sid }) : fallback;
+        }
+        if (/\/apps\/takeout\/index\.html$/i.test(u.pathname)) {
+          const shop = u.searchParams.get("shop");
+          const category = u.searchParams.get("category");
+          const kw = u.searchParams.get("kw");
+          if (shop) return buildTakeoutEntryLink({ shop });
+          if (sid) return buildTakeoutEntryLink({ shop: sid });
+          if (category || kw) return buildTakeoutEntryLink({ category, kw });
+          return fallback;
+        }
+        const mTakeout = u.pathname.match(/^\/apps\/takeout\/([^\/?#.]+)$/i);
+        if (mTakeout) {
+          return buildTakeoutEntryLink({ shop: mTakeout[1] });
+        }
+        if (/^https?:\/\/qq\.fangz9999\.vip\/index\.html$/i.test(u.origin + u.pathname)) {
+          const shop = u.searchParams.get("shop");
+          const category = u.searchParams.get("category");
+          const kw = u.searchParams.get("kw");
+          if (shop) return buildTakeoutEntryLink({ shop });
+          if (sid) return buildTakeoutEntryLink({ shop: sid });
+          if (category || kw) return buildTakeoutEntryLink({ category, kw });
+        }
+        return u.toString();
+      } catch {
+        return fallback;
+      }
+    }
+
+    function resolveLink(item) {
+      return normalizeOrderLink(item.link, item.id);
+    }
+
+    function toInternalTakeoutUrl(raw) {
+      const link = safeText(raw);
+      if (!link) return buildTakeoutEntryLink();
+      try {
+        const u = new URL(link, window.location.origin);
+        if (u.origin === window.location.origin) {
+          return `${u.pathname}${u.search}${u.hash}`;
+        }
+        return buildTakeoutEntryLink({ target: u.toString() });
+      } catch {
+        return buildTakeoutEntryLink();
+      }
+    }
+
+    function scoreById(id) {
+      let sum = 0;
+      for (const ch of String(id || "")) sum += ch.charCodeAt(0);
+      return (4.5 + (sum % 5) * 0.1).toFixed(1);
+    }
+
+    async function loadMerchantData() {
+      const errors = [];
+      for (const url of DATA_URL_CANDIDATES) {
+        try {
+          const res = await fetch(url, { cache: "no-store" });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const ct = (res.headers.get("content-type") || "").toLowerCase();
+          if (ct.includes("text/html")) throw new Error("got HTML response");
+          const payload = await res.json();
+          const list = pickMerchantList(payload);
+          if (!list.length) throw new Error("empty list");
+          const normalized = list.map(normalizeMerchant).filter((m) => safeText(m.name));
+          if (!normalized.length) throw new Error("normalized list is empty");
+          console.info("[merchant-hub] data source ok:", url, normalized.length);
+          return normalized;
+        } catch (err) {
+          errors.push(`${url}: ${err.message}`);
+        }
+      }
+      console.warn("[merchant-hub] all data sources failed:", errors.join(" | "));
+      return [];
+    }
+
+    function filteredList() {
+      const kw = normalizeSearchText(state.keyword);
+      const byCategory = state.all.filter((m) => {
+        if (!state.activeCategory) return true;
+        return m.category === state.activeCategory;
+      });
+      if (!kw) return byCategory;
+      return byCategory.filter((m) => {
+        const hay = normalizeSearchText(
+          `${safeText(m.name)} ${safeText(m.category)} ${(m.tags || []).join(" ")} ${safeText(m.searchKeywords)}`
+        );
+        return hay.includes(kw);
+      });
+    }
+
+    function hasPromo(merchant) {
+      const text = `${(merchant.tags || []).join(" ")} ${safeText(merchant.searchKeywords)}`;
+      return /券|减|折|满|返|活动|优惠/i.test(text);
+    }
+
+    function resolveRating(merchant) {
+      const n = Number(merchant.rating);
+      if (Number.isFinite(n) && n > 0) return Math.min(5, n);
+      return Number(scoreById(merchant.id));
+    }
+
+    function resolveEtaMinutes(merchant) {
+      const n = Number(merchant.etaMinutes);
+      if (Number.isFinite(n) && n > 0) return n;
+      return 20 + (Math.abs((merchant.id || "").length * 13) % 20);
+    }
+
+    function resolveDeliveryFee(merchant) {
+      const n = Number(merchant.deliveryFee);
+      if (Number.isFinite(n) && n >= 0) return n;
+      return (Math.abs((merchant.id || "").length * 7) % 4) + 1;
+    }
+
+    function resolveMinOrder(merchant) {
+      const n = Number(merchant.minOrder);
+      if (Number.isFinite(n) && n >= 0) return n;
+      return (Math.abs((merchant.id || "").length * 5) % 3) * 10 + 20;
+    }
+
+    function processedList() {
+      let list = filteredList();
+      if (state.onlyPromo) {
+        list = list.filter((m) => hasPromo(m));
+      }
+
+      const sorted = [...list];
+      if (state.sortBy === "sales") {
+        sorted.sort((a, b) => Number(b.monthSales || 0) - Number(a.monthSales || 0));
+      } else if (state.sortBy === "rating") {
+        sorted.sort((a, b) => resolveRating(b) - resolveRating(a));
+      } else if (state.sortBy === "eta") {
+        sorted.sort((a, b) => resolveEtaMinutes(a) - resolveEtaMinutes(b));
+      }
+      return sorted;
+    }
+
+    function renderFilterBar() {
+      const root = document.getElementById("filterBar");
+      if (!root) return;
+      root.innerHTML = `
+        <button class="filter-chip${state.sortBy === "smart" ? " active" : ""}" data-sort="smart" type="button">综合</button>
+        <button class="filter-chip${state.sortBy === "sales" ? " active" : ""}" data-sort="sales" type="button">销量优先</button>
+        <button class="filter-chip${state.sortBy === "rating" ? " active" : ""}" data-sort="rating" type="button">评分最高</button>
+        <button class="filter-chip${state.sortBy === "eta" ? " active" : ""}" data-sort="eta" type="button">送达最快</button>
+        <button class="filter-chip${state.onlyPromo ? " active" : ""}" data-toggle="promo" type="button">仅看优惠</button>
+      `;
+
+      root.querySelectorAll("[data-sort]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          state.sortBy = btn.dataset.sort;
+          state.visibleCountMap[currentListKey()] = state.pageSize;
+          renderCards();
+          renderFilterBar();
+          syncQueryState();
+        });
+      });
+
+      const promoBtn = root.querySelector('[data-toggle="promo"]');
+      if (promoBtn) {
+        promoBtn.addEventListener("click", () => {
+          state.onlyPromo = !state.onlyPromo;
+          state.visibleCountMap[currentListKey()] = state.pageSize;
+          renderCards();
+          renderFilterBar();
+          syncQueryState();
+        });
+      }
+    }
+
+    function currentListKey() {
+      const kw = safeText(state.keyword).toLowerCase();
+      const cat = safeText(state.activeCategory);
+      const mode = `${state.sortBy}:${state.onlyPromo ? 1 : 0}`;
+      if (!kw) return `cat:${cat}:${mode}`;
+      return `search:${cat}:${kw}:${mode}`;
+    }
+
+    function getVisibleCount(total) {
+      const key = currentListKey();
+      const saved = Number(state.visibleCountMap[key]);
+      if (Number.isFinite(saved) && saved > 0) {
+        return Math.min(saved, total);
+      }
+      const initial = Math.min(state.pageSize, total);
+      state.visibleCountMap[key] = initial;
+      return initial;
+    }
+
+    function renderCategories() {
+      const root = document.getElementById("categoryStrip");
+      root.innerHTML = FIXED_CATEGORY_LIST.map((c) => {
+        const active = c === state.activeCategory ? " active" : "";
+        const icon = CATEGORY_ICON_MAP[c] || DEFAULT_CATEGORY_ICON;
+        return `
+          <button class="cat-item${active}" type="button" data-category="${escapeHtml(c)}">
+            <span class="cat-icon-wrap">
+              <img class="cat-icon-img" src="${escapeHtml(icon)}" alt="${escapeHtml(c)}" loading="lazy" onerror="this.src='${DEFAULT_CATEGORY_ICON}';this.onerror=null;">
+            </span>
+            <span>${escapeHtml(CATEGORY_LABEL_MAP[c] || c)}</span>
+          </button>
+        `;
+      }).join("");
+
+      root.querySelectorAll("[data-category]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          state.activeCategory = btn.dataset.category;
+          render();
+          syncQueryState();
+        });
+      });
+    }
+
+    function syncQueryState() {
+      const url = new URL(window.location.href);
+      if (safeText(state.activeCategory)) {
+        url.searchParams.set("category", safeText(state.activeCategory));
+      } else {
+        url.searchParams.delete("category");
+      }
+      if (safeText(state.keyword)) {
+        url.searchParams.set("kw", safeText(state.keyword));
+      } else {
+        url.searchParams.delete("kw");
+      }
+      if (state.sortBy && state.sortBy !== "smart") {
+        url.searchParams.set("sort", state.sortBy);
+      } else {
+        url.searchParams.delete("sort");
+      }
+      if (state.onlyPromo) {
+        url.searchParams.set("promo", "1");
+      } else {
+        url.searchParams.delete("promo");
+      }
+      const q = url.searchParams.toString();
+      history.replaceState(null, "", `${url.pathname}${q ? `?${q}` : ""}${url.hash}`);
+    }
+
+    function renderLoadingState() {
+      const root = document.getElementById("merchantList");
+      if (!root) return;
+      root.innerHTML = Array.from({ length: 6 }).map(() => `
+        <article class="skeleton-card">
+          <div class="sk-media"></div>
+          <div class="sk-content">
+            <div class="sk-line w70"></div>
+            <div class="sk-line w55"></div>
+            <div class="sk-line w40"></div>
+          </div>
+          <div class="sk-btn"></div>
+        </article>
+      `).join("");
+      renderListFooter(0, 0);
+    }
+
+    function renderErrorState(message) {
+      const root = document.getElementById("merchantList");
+      if (!root) return;
+      root.innerHTML = `
+        <div class="status-card">
+          Merchant list load failed: ${escapeHtml(message || "Unknown error")}
+          <div class="status-actions">
+            <button class="status-btn primary" type="button" data-action="retry-load">重试加载</button>
+          </div>
+        </div>
+      `;
+      const retry = root.querySelector('[data-action="retry-load"]');
+      if (retry) {
+        retry.addEventListener("click", () => {
+          reloadData();
+        });
+      }
+      renderListFooter(0, 0);
+    }
+
+    function renderCards() {
+      const root = document.getElementById("merchantList");
+      if (state.loading) {
+        renderLoadingState();
+        return;
+      }
+      if (state.loadError) {
+        renderErrorState(state.loadError);
+        return;
+      }
+
+      const allList = processedList();
+      if (!allList.length) {
+        const emptyText = state.keyword ? "未找到相关商家，请换个关键词试试" : "当前分类暂无商家";
+        root.innerHTML = `
+          <div class="status-card">
+            ${escapeHtml(emptyText)}
+              ${state.keyword ? '<button class="status-btn" type="button" data-action="clear-kw">清空关键字</button>' : ""}
+              ${(state.onlyPromo || state.sortBy !== "smart") ? '<button class="status-btn" type="button" data-action="reset-filter">重置筛选</button>' : ""}
+            </div>
+        `;
+        const clearKw = root.querySelector('[data-action="clear-kw"]');
+        if (clearKw) {
+          clearKw.addEventListener("click", () => {
+            state.keyword = "";
+            const input = document.getElementById("searchInput");
+            if (input) input.value = "";
+            renderCards();
+            syncQueryState();
+          });
+        }
+        const resetFilter = root.querySelector('[data-action="reset-filter"]');
+        if (resetFilter) {
+          resetFilter.addEventListener("click", () => {
+            state.onlyPromo = false;
+            state.sortBy = "smart";
+            renderFilterBar();
+            renderCards();
+            syncQueryState();
+          });
+        }
+        renderListFooter(0, 0);
+        return;
+      }
+
+      const visibleCount = getVisibleCount(allList.length);
+      const list = allList.slice(0, visibleCount);
+
+      root.innerHTML = list.map((m) => {
+        const name = safeText(m.name) || "未命名";
+        const category = safeText(m.category) || "商铺类型";
+        const link = resolveLink(m);
+        const image = safeText(m.image) || "/images/store-default1.webp";
+        const score = resolveRating(m).toFixed(1);
+        const monthSales = Number.isFinite(Number(m.monthSales)) ? Number(m.monthSales) : 0;
+        const promoTag = hasPromo(m) ? '<span class="tag promo">有优惠</span>' : "";
+        const openTag = m.isOpen ? '<span class="tag neutral">营业中</span>' : '<span class="tag neutral">休息中</span>';
+        return `
+          <article class="merchant-card">
+            <div class="merchant-top">
+              <div class="merchant-media">
+                <img class="merchant-img" src="${escapeHtml(image)}" alt="${escapeHtml(name)}" loading="lazy" onerror="this.src='/images/store-default1.webp';this.onerror=null;">
+              </div>
+              <div class="merchant-info">
+                <div class="merchant-name-row">
+                  <h3 class="merchant-name">${escapeHtml(name)}</h3>
+                  <span class="merchant-sales">月消${monthSales}</span>
+                </div>
+                <p class="merchant-type">${escapeHtml(category)}</p>
+                <p class="merchant-rate"><span class="stars">★★★★☆</span> ${score}</p>
+                <p class="merchant-meta">
+                  <span class="delivery-fee">配送¥0</span>
+                  <span class="eta">立即送</span>
+                  <span class="min-order">起送¥ 0</span>
+                </p>
+                <div class="merchant-tags">${promoTag}${openTag}</div>
+              </div>
+            </div>
+            <button class="merchant-btn" type="button" data-link="${escapeHtml(link)}">进入点餐</button>
+          </article>
+        `;
+      }).join("");
+
+      root.querySelectorAll("button[data-link]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          window.location.assign(toInternalTakeoutUrl(btn.dataset.link));
+        });
+      });
+
+      renderListFooter(allList.length, list.length);
+    }
+
+    function renderListFooter(total, shown) {
+      const root = document.getElementById("listFooter");
+      if (!root) return;
+      if (!total) {
+        root.innerHTML = "";
+        return;
+      }
+
+      const hasMore = shown < total;
+      root.innerHTML = `
+        <div class="list-status">已显示${shown}/${total} 家</div>
+        <div class="list-actions">
+          ${hasMore ? '<button class="list-btn primary" type="button" data-action="more">加载更多</button>' : ""}
+          <button class="list-btn" type="button" data-action="top">回到顶部</button>
+        </div>
+      `;
+
+      const moreBtn = root.querySelector('[data-action="more"]');
+      if (moreBtn) {
+        moreBtn.addEventListener("click", () => {
+          const key = currentListKey();
+          const current = Number(state.visibleCountMap[key]) || 0;
+          state.visibleCountMap[key] = Math.min(current + state.pageSize, total);
+          renderCards();
+        });
+      }
+
+      const topBtn = root.querySelector('[data-action="top"]');
+      if (topBtn) {
+        topBtn.addEventListener("click", () => {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+      }
+    }
+
+    function render() {
+      renderCategories();
+      renderFilterBar();
+      renderCards();
+    }
+
+    function bindEvents() {
+      const input = document.getElementById("searchInput");
+      const btn = document.getElementById("searchBtn");
+      const homeFab = document.getElementById("homeFab");
+
+      const doSearch = () => {
+        state.keyword = safeText(input.value);
+        state.visibleCountMap[currentListKey()] = state.pageSize;
+        renderCards();
+        syncQueryState();
+      };
+
+      btn.addEventListener("click", doSearch);
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") doSearch();
+      });
+
+      if (homeFab) {
+        homeFab.addEventListener("click", () => {
+          window.location.assign("/");
+        });
+      }
+    }
+
+    async function reloadData() {
+      state.loading = true;
+      state.loadError = "";
+      renderCards();
+      try {
+        const list = await loadMerchantData();
+        if (!Array.isArray(list) || list.length === 0) {
+          throw new Error("暂无可展示商家");
+        }
+        state.all = list;
+      } catch (error) {
+        state.all = [];
+        state.loadError = safeText(error?.message) || "数据请求失败";
+      } finally {
+        state.loading = false;
+      }
+      render();
+    }
+
+    async function init() {
+      bindEvents();
+      const query = new URLSearchParams(window.location.search);
+      const category = query.get("category");
+      const kw = safeText(query.get("kw"));
+      const sort = safeText(query.get("sort"));
+      const promo = safeText(query.get("promo"));
+      if (category && FIXED_CATEGORY_LIST.includes(category)) {
+        state.activeCategory = category;
+      }
+      if (kw) {
+        state.keyword = kw;
+        if (!category) state.activeCategory = "";
+        const input = document.getElementById("searchInput");
+        if (input) input.value = kw;
+      }
+      if (["smart", "sales", "rating", "eta"].includes(sort)) {
+        state.sortBy = sort;
+      }
+      state.onlyPromo = promo === "1";
+      render();
+      await reloadData();
+    }
+
+    init();
+  </script>
+</body>
+
+</html>

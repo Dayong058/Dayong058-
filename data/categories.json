@@ -1,0 +1,62 @@
+{
+    "group": "food",
+    "title": "美食外卖",
+    "categories": [
+        {
+            "id": "cooked",
+            "name": "家常炒菜",
+            "icon": "/images/categories/cooked.png",
+            "sort": 10,
+            "enabled": true
+        },
+        {
+            "id": "breakfast",
+            "name": "营养早餐",
+            "icon": "/images/categories/breakfast.png",
+            "sort": 20,
+            "enabled": true
+        },
+        {
+            "id": "hotpot",
+            "name": "火锅烧烤",
+            "icon": "/images/categories/hotpot.png",
+            "sort": 30,
+            "enabled": true
+        },
+        {
+            "id": "snack",
+            "name": "风味小吃",
+            "icon": "/images/categories/snack.png",
+            "sort": 40,
+            "enabled": true
+        },
+        {
+            "id": "drink",
+            "name": "汉堡奶茶",
+            "icon": "/images/categories/drink.png",
+            "sort": 50,
+            "enabled": true
+        },
+        {
+            "id": "fruit",
+            "name": "鲜花水果",
+            "icon": "/images/categories/fruit.png",
+            "sort": 60,
+            "enabled": true
+        },
+        {
+            "id": "market",
+            "name": "商超便利",
+            "icon": "/images/categories/market.png",
+            "sort": 70,
+            "enabled": true
+        },
+        {
+            "id": "pet",
+            "name": "宠物商店",
+            "icon": "/images/categories/pet.png",
+            "sort": 80,
+            "enabled": true
+        }
+    ]
+}

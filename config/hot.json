@@ -1,0 +1,26 @@
+[
+  {
+    "id": "wm-nearby",
+    "title": "附近外卖",
+    "desc": "支持多商户，在线下单更快捷",
+    "img": "/images/hot/hot-food.webp",
+    "link": "/apps/takeout/entry.html?v=20260208-main-qq",
+    "btnText": "立即点外卖"
+  },
+  {
+    "id": "store-special",
+    "title": "品牌商家推荐",
+    "desc": "精选高评分商户，满减优惠持续中",
+    "img": "/images/hot/hot-2.webp",
+    "link": "/apps/takeout/index.html?v=20260208-main-qq",
+    "btnText": "进入商家列表"
+  },
+  {
+    "id": "hotel-reco",
+    "title": "酒店推荐",
+    "desc": "特价房与钟点房，今日优惠可预订",
+    "img": "/images/hot/hot-hotel.webp",
+    "link": "https://jd.fangz9999.vip",
+    "btnText": "预订酒店"
+  }
+]

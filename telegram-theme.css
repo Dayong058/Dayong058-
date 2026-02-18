@@ -1,0 +1,205 @@
+/* telegram-theme.css - Telegram WebApp theme adaptation */
+
+:root {
+  --tg-bg-color: #ffffff;
+  --tg-text-color: #000000;
+  --tg-hint-color: #999999;
+  --tg-link-color: #2481cc;
+  --tg-button-color: #40a7e3;
+  --tg-button-text-color: #ffffff;
+  --tg-secondary-bg-color: #f0f0f0;
+  --tg-header-bg-color: #ffffff;
+  --tg-accent-text-color: #40a7e3;
+  --tg-section-bg-color: #f9f9f9;
+  --tg-section-header-color: #40a7e3;
+}
+
+[data-theme="dark"] {
+  --tg-bg-color: #1a1a1a;
+  --tg-text-color: #ffffff;
+  --tg-hint-color: #aaaaaa;
+  --tg-link-color: #6ab3f3;
+  --tg-button-color: #3d8ec9;
+  --tg-button-text-color: #ffffff;
+  --tg-secondary-bg-color: #2d2d2d;
+  --tg-header-bg-color: #1a1a1a;
+  --tg-accent-text-color: #6ab3f3;
+  --tg-section-bg-color: #2d2d2d;
+  --tg-section-header-color: #6ab3f3;
+}
+
+body.tg-dark,
+body.tg-light {
+  background-color: var(--tg-bg-color);
+  color: var(--tg-text-color);
+}
+
+.tg-dark .header,
+.tg-dark .search-bar {
+  background-color: var(--tg-header-bg-color);
+  border-bottom: 1px solid var(--tg-secondary-bg-color);
+}
+
+.tg-dark .search-bar input {
+  background-color: var(--tg-secondary-bg-color);
+  color: var(--tg-text-color);
+  border-color: var(--tg-hint-color);
+}
+
+.tg-dark .biz-card {
+  background-color: var(--tg-secondary-bg-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.tg-dark .biz-label,
+.tg-dark .hot-card-title,
+.tg-dark .store-name,
+.tg-dark .entry-title,
+.tg-dark .nav-btn {
+  color: var(--tg-text-color);
+}
+
+.tg-dark .category-section,
+.tg-dark .hot-recommend,
+.tg-dark .store-section,
+.tg-dark .merchant-entry,
+.tg-dark .announcement-bar,
+.tg-dark .func-row,
+.tg-dark .welcome-content {
+  background-color: var(--tg-section-bg-color);
+  color: var(--tg-text-color);
+}
+
+.tg-dark .cat-title.red,
+.tg-dark .hot-title.red,
+.tg-dark .store-title {
+  color: var(--tg-section-header-color);
+}
+
+.tg-dark .cat-circle,
+.tg-dark .entry-card {
+  background-color: var(--tg-secondary-bg-color);
+}
+
+.tg-dark .hot-card,
+.tg-dark .store-card {
+  background-color: var(--tg-secondary-bg-color);
+  border-color: var(--tg-hint-color);
+}
+
+.tg-dark .hot-card-desc,
+.tg-dark .store-desc,
+.tg-dark .announcement-content,
+.tg-dark .entry-desc,
+.tg-dark .welcome-desc,
+.tg-dark .welcome-note {
+  color: var(--tg-hint-color);
+}
+
+.tg-dark .search-bar button,
+.tg-dark .hot-card-btn,
+.tg-dark .store-btn,
+.tg-dark .signin-btn,
+.tg-dark .entry-btn,
+.tg-dark .main-btn,
+.tg-dark .nav-btn.active,
+.tg-dark .toast-info {
+  background-color: var(--tg-button-color);
+  color: var(--tg-button-text-color);
+}
+
+.tg-dark .func-stats b {
+  color: var(--tg-accent-text-color);
+}
+
+.tg-dark .announcement-bar,
+.tg-dark .sub-btn,
+.tg-dark .loading-spinner {
+  border-color: var(--tg-hint-color);
+}
+
+.tg-dark .entry-collapse {
+  background-color: var(--tg-secondary-bg-color);
+  color: var(--tg-text-color);
+}
+
+.tg-dark .bottom-nav {
+  background-color: var(--tg-header-bg-color);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.tg-dark .welcome-overlay {
+  background-color: rgba(0, 0, 0, 0.95);
+}
+
+.tg-dark .sub-btn {
+  background-color: transparent;
+}
+
+.tg-dark .global-toast {
+  background-color: var(--tg-secondary-bg-color);
+  color: var(--tg-text-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.tg-dark .toast-success {
+  background-color: #2e7d32;
+  color: white;
+}
+
+.tg-dark .toast-error {
+  background-color: #c62828;
+  color: white;
+}
+
+.tg-dark .toast-warning {
+  background-color: #f57c00;
+  color: white;
+}
+
+.tg-dark .banner-slider {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.tg-dark .banner-slide img {
+  filter: brightness(0.9);
+}
+
+.tg-dark .banner-dot {
+  background-color: var(--tg-hint-color);
+}
+
+.tg-dark .banner-dot.is-active,
+.tg-dark .loading-spinner {
+  border-top-color: var(--tg-button-color);
+}
+
+.tg-dark .banner-dot.is-active {
+  background-color: var(--tg-button-color);
+}
+
+.tg-dark a {
+  color: var(--tg-link-color);
+}
+
+.tg-dark a:hover {
+  color: var(--tg-accent-text-color);
+}
+
+.tg-dark ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tg-dark ::-webkit-scrollbar-track {
+  background: var(--tg-secondary-bg-color);
+}
+
+.tg-dark ::-webkit-scrollbar-thumb {
+  background: var(--tg-hint-color);
+  border-radius: 4px;
+}
+
+.tg-dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--tg-button-color);
+}

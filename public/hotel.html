@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>华庭之星 - 酒店预订</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    :root {
+      --bg-yellow: #fffdf2;
+      --main-green: #2e7d32;
+      --sub-green: #81c784;
+      --dark-coffee: #4e342e;
+      --light-coffee: #8d6e63;
+      --text-yellow: #fff9c4;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      background: linear-gradient(180deg, #fff8ef 0%, #fff3f5 45%, #f7f4ff 100%);
+      font-family: "Microsoft YaHei", sans-serif;
+      color: #2b2b2b;
+      padding-bottom: calc(82px + env(safe-area-inset-bottom));
+    }
+
+    .marquee-bar {
+      background: var(--dark-coffee);
+      color: #fff;
+      padding: 8px 0;
+      overflow: hidden;
+      white-space: nowrap;
+      font-size: 14px;
+      z-index: 100;
+    }
+
+    .marquee-content {
+      display: inline-block;
+      animation: marquee 20s linear infinite;
+      padding-left: 100%;
+    }
+
+    @keyframes marquee {
+      0% {
+        transform: translate(0, 0);
+      }
+
+      100% {
+        transform: translate(-100%, 0);
+      }
+    }
+
+    .slideshow {
+      width: 100%;
+      height: 180px;
+      position: relative;
+      overflow: hidden;
+      background: #eee;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .slide.active {
+      opacity: 1;
+    }
+
+    .header-section {
+      padding: 15px 20px;
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .main-title {
+      font-family: "FangSong", "仿宋", serif;
+      font-size: 62px;
+      color: var(--main-green);
+      text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.15);
+      margin: 0;
+      line-height: 1;
+    }
+
+    .sub-title {
+      font-size: 34px;
+      color: var(--sub-green);
+      font-weight: normal;
+    }
+
+    .search-bar {
+      margin: 10px 20px;
+      height: 50px;
+      border: 2px solid var(--dark-coffee);
+      border-radius: 25px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      padding-right: 2px;
+    }
+
+    .search-bar input {
+      flex: 1;
+      border: none;
+      padding: 0 20px;
+      outline: none;
+      font-size: 16px;
+      background: transparent;
+    }
+
+    .search-btn {
+      background: var(--light-coffee);
+      color: var(--text-yellow);
+      border: none;
+      height: 42px;
+      width: 54px;
+      padding: 0;
+      border-radius: 21px;
+      font-size: 20px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .main-container {
+      display: flex;
+      padding: 10px;
+      gap: 10px;
+      min-height: 500px;
+    }
+
+    .sidebar {
+      width: 100px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .nav-item {
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 15px 5px;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 14px;
+      color: var(--dark-coffee);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      cursor: pointer;
+      opacity: 0;
+      transform: translateX(-8px);
+      animation: navItemIn .35s ease forwards;
+      animation-delay: calc(var(--item-index, 0) * 55ms);
+      transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease, color .2s ease;
+    }
+
+    .nav-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(46, 125, 50, 0.14);
+    }
+
+    .nav-item:active {
+      transform: scale(0.98);
+    }
+
+    .nav-item.active {
+      background: var(--light-coffee);
+      color: #fff;
+      border-color: var(--light-coffee);
+      box-shadow: 0 10px 18px rgba(78, 52, 46, 0.24);
+    }
+
+    .content-list {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .room-card {
+      background: #fff;
+      border-radius: 15px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      position: relative;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: roomCardIn .4s ease forwards;
+      animation-delay: calc(var(--card-index, 0) * 70ms);
+      transition: transform .22s ease, box-shadow .22s ease;
+    }
+
+    .room-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 24px rgba(46, 125, 50, 0.16);
+    }
+
+    .room-card:active {
+      transform: scale(0.99);
+    }
+
+    .room-card img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+    }
+
+    .room-details {
+      padding: 12px;
+    }
+
+    .room-name {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .room-tags {
+      margin: 5px 0;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .room-tags span {
+      margin-right: 8px;
+      border: 1px solid #eee;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+
+    .room-price {
+      font-size: 20px;
+      color: var(--main-green);
+      font-weight: bold;
+      margin-top: 5px;
+    }
+
+    .book-btn-container {
+      position: absolute;
+      right: 0;
+      bottom: 12px;
+      background: var(--dark-coffee);
+      transform: skewX(-20deg);
+      padding: 8px 25px;
+      cursor: pointer;
+      border: none;
+      transition: transform .2s ease, filter .2s ease;
+    }
+
+    .book-btn-container:hover {
+      transform: skewX(-20deg) translateY(-1px);
+      filter: brightness(1.05);
+    }
+
+    .book-btn-container:active {
+      transform: skewX(-20deg) scale(0.97);
+    }
+
+    .book-btn-text {
+      color: var(--text-yellow);
+      transform: skewX(20deg);
+      display: block;
+      font-weight: bold;
+    }
+
+    .floating-actions {
+      position: fixed;
+      left: 14px;
+      bottom: calc(env(safe-area-inset-bottom) + 92px);
+      width: 58px;
+      border: 1.5px solid var(--main-green);
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: 0 8px 18px rgba(46, 125, 50, 0.18);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 1000;
+    }
+
+    .floating-actions .fab-btn {
+      width: 58px;
+      height: 58px;
+      border: none;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.1;
+      cursor: pointer;
+    }
+
+    .floating-actions .fab-btn+.fab-btn {
+      border-top: 1.5px solid var(--main-green);
+    }
+
+    .floating-actions .fab-btn.book {
+      background: var(--main-green);
+      color: var(--text-yellow);
+    }
+
+    .floating-actions .fab-btn.support {
+      background: rgba(232, 245, 233, 0.95);
+      color: var(--main-green);
+    }
+
+    .floating-actions .fab-btn i {
+      font-size: 18px;
+      margin: 0;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      padding: 20px;
+    }
+
+    .booking-modal {
+      background: #fff;
+      width: 100%;
+      max-width: 400px;
+      border-radius: 20px;
+      padding: 20px;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(50px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: var(--dark-coffee);
+      text-align: center;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .form-group select,
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      outline: none;
+    }
+
+    .confirm-btn {
+      width: 100%;
+      padding: 15px;
+      background: var(--main-green);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    @keyframes roomCardIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes navItemIn {
+      from {
+        opacity: 0;
+        transform: translateX(-8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="marquee-bar">
+    <div class="marquee-content" id="hotelAnnouncements"></div>
+  </div>
+
+  <div class="slideshow" id="slideshow">
+    <div class="slide active"
+      style="background-image: url('https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800')"></div>
+    <div class="slide"
+      style="background-image: url('https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800')"></div>
+    <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800')">
+    </div>
+  </div>
+
+  <div class="header-section">
+    <h1 class="main-title">华庭之星</h1>
+    <span class="sub-title">精品酒店预订</span>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="搜索酒店名称、房型关键字...">
+    <button class="search-btn" onclick="HotelApp.handleSearch()">🔍</button>
+  </div>
+
+  <div class="main-container">
+    <div class="sidebar" id="hotelNav"></div>
+    <div class="content-list" id="roomContainer"></div>
+  </div>
+
+  <div class="floating-actions" aria-label="酒店快捷操作">
+    <button class="fab-btn book" type="button" onclick="HotelApp.openBookingSelector()">
+      <i class="fas fa-calendar-check"></i><span>预订</span>
+    </button>
+    <button class="fab-btn support" type="button" onclick="HotelApp.contactSupport()">
+      <i class="fas fa-headset"></i><span>客服</span>
+    </button>
+  </div>
+
+  <div class="modal-overlay" id="bookingModal">
+    <div class="booking-modal">
+      <div class="modal-title">预订信息确认</div>
+      <div id="bookingForm">
+        <div class="form-group">
+          <label>入住日期</label>
+          <input type="date" id="checkinDate">
+        </div>
+        <div class="form-group">
+          <label>离店日期</label>
+          <input type="date" id="checkoutDate">
+        </div>
+        <div class="form-group">
+          <label>支付方式</label>
+          <select id="paymentMethod">
+            <option value="现金">现金（到店支付）</option>
+            <option value="USDT">USDT 转账</option>
+          </select>
+        </div>
+        <button class="confirm-btn" id="confirmBookingBtn" type="button">确定预约</button>
+        <button class="confirm-btn" type="button" style="background:#ccc; margin-top:5px"
+          onclick="HotelApp.closeModal()">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/asset/js/hotel-booking.js?v=20260217-2"></script>
+
+  <script>
+    async function loadHotelAnnouncements() {
+      const resp = await fetch("/api/hotel/announcements");
+
+      if (!resp.ok) {
+        console.error("接口返回非200：", resp.status);
+        return;
+      }
+
+      const data = await resp.json().catch(err => {
+        console.error("JSON解析失败", err);
+        return null;
+      });
+
+      if (!data || !data.ok) return;
+
+      const container = document.getElementById("hotelAnnouncements");
+      if (!container) return;
+
+      const list = (data.list || []).filter(a => a.active !== false);
+      container.textContent = list.map(a => "📢 " + a.text).join("     ");
+    }
+
+    async function loadHotelBanners() {
+      const resp = await fetch("/api/hotel/banners");
+      const data = await resp.json();
+      if (!data.ok) return;
+
+      const slideWrap = document.getElementById("slideshow");
+      if (!slideWrap) return;
+
+      slideWrap.innerHTML = "";
+
+      (data.list || []).forEach((b, i) => {
+        const div = document.createElement("div");
+        div.className = "slide" + (i === 0 ? " active" : "");
+        div.style.backgroundImage = `url('${b.image}')`;
+        slideWrap.appendChild(div);
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadHotelAnnouncements();
+      loadHotelBanners();
+    });
+  </script>
+
+</body>
+
+</html>

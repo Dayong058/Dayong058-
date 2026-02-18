@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>幸运大转盘</title>
+  <style>
+    body {
+      margin: 0;
+    }
+
+    .bg {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .zhuanp {
+      position: fixed;
+      width: 100%;
+      top: 35vh;
+      left: 0;
+      z-index: 100;
+    }
+
+    #turntable {
+      margin: 0 auto;
+    }
+
+    .gb-turntable ul,
+    .gb-turntable li {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .gb-turntable,
+    .gb-turntable * {
+      box-sizing: content-box;
+    }
+
+    .gb-turntable {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      border: 16px solid #E44025;
+      box-shadow: 0 2px 3px #333, 0 0 2px #000;
+    }
+
+    .gb-turntable-container {
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: 1;
+      width: 300px;
+      height: 300px;
+      border-radius: inherit;
+      background-clip: padding-box;
+      background-color: #ffcb3f;
+      transition: transform 6s ease;
+    }
+
+    .gb-turntable-container canvas {
+      display: block;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+    }
+
+    .gb-turntalbe-list {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 300px;
+      height: 300px;
+      z-index: 2;
+    }
+
+    .gb-turntable-item {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      color: #e4370e;
+      font-weight: 700;
+      text-shadow: 0 1px 1px rgba(255, 255, 255, .6);
+    }
+
+    .gb-turntable-item span {
+      position: relative;
+      display: block;
+      padding-top: 20px;
+      margin: 0 auto;
+      text-align: center;
+      transform-origin: 50% 150px;
+    }
+
+    .gb-turntable-btn {
+      position: absolute;
+      left: 110px;
+      top: 110px;
+      z-index: 3;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      color: #F4E9CC;
+      background-color: #E44025;
+      line-height: 80px;
+      text-align: center;
+      font-size: 20px;
+      text-shadow: 0 -1px 1px rgba(0, 0, 0, .6);
+      box-shadow: 0 3px 5px rgba(0, 0, 0, .6);
+      text-decoration: none;
+    }
+
+    .gb-turntable-btn::after {
+      position: absolute;
+      display: block;
+      content: '';
+      left: 10px;
+      top: -46px;
+      width: 0;
+      height: 0;
+      border-width: 30px;
+      border-style: solid;
+      border-color: transparent;
+      border-bottom-color: #E44025;
+    }
+
+    .gb-turntable-btn.disabled {
+      pointer-events: none;
+      background: #B07A7B;
+      color: #ccc;
+    }
+
+    .gb-turntable-btn.disabled::after {
+      border-bottom-color: #B07A7B;
+    }
+  </style>
+</head>
+
+<body>
+  <img class="bg" src="" alt="幸运转盘背景">
+  <div class="zhuanp">
+    <section id="turntable" class="gb-turntable">
+      <div class="gb-turntable-container">
+        <canvas class="gb-turntable-canvas" width="300" height="300">抱歉！浏览器不支持。</canvas>
+      </div>
+      <a class="gb-turntable-btn" href="javascript:;">抽奖</a>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      var VERSION = "20260214-wheel-prod-path-fix-1";
+      var BASES = ["/asset", "/public/asset", "asset", "public/asset"];
+
+      function candidateUrls(subPath) {
+        return BASES.map(function (base) {
+          return base.replace(/\/+$/, "") + "/" + subPath.replace(/^\/+/, "") + "?v=" + VERSION;
+        });
+      }
+
+      function loadStylesheet(urls) {
+        return new Promise(function (resolve, reject) {
+          var i = 0;
+          var link = document.createElement("link");
+          link.rel = "stylesheet";
+          link.onload = function () { resolve(link.href); };
+          link.onerror = function () { tryNext(); };
+          function tryNext() {
+            if (i >= urls.length) {
+              reject(new Error("css load failed"));
+              return;
+            }
+            link.href = urls[i++];
+            if (!link.isConnected) document.head.appendChild(link);
+          }
+          tryNext();
+        });
+      }
+
+      function loadScript(urls) {
+        return new Promise(function (resolve, reject) {
+          var i = 0;
+          function tryNext() {
+            if (i >= urls.length) {
+              reject(new Error("js load failed"));
+              return;
+            }
+            var s = document.createElement("script");
+            s.src = urls[i++];
+            s.onload = function () { resolve(s.src); };
+            s.onerror = function () { s.remove(); tryNext(); };
+            document.body.appendChild(s);
+          }
+          tryNext();
+        });
+      }
+
+      function bindImageFallback(img, urls) {
+        var i = 0;
+        img.onerror = function () {
+          i += 1;
+          if (i < urls.length) img.src = urls[i];
+        };
+        if (urls.length) img.src = urls[0];
+      }
+
+      function initTurntable() {
+        if (typeof gbTurntable === "undefined") return;
+        gbTurntable.init({
+          id: "turntable",
+          config: function (callback) {
+            callback && callback([
+              { text: "1元红包" },
+              { text: "2元红包" },
+              { text: "100元红包" },
+              { text: "3元红包" },
+              { text: "显示器" },
+              { text: "5元红包" },
+              { text: "6元红包" },
+              { text: "笔记本电脑" }
+            ]);
+          },
+          getPrize: function (callback) {
+            var num = (Math.random() * 7) >>> 0;
+            var chances = num;
+            callback && callback([num, chances]);
+          },
+          gotBack: function (data) {
+            alert("恭喜抽中" + data);
+          }
+        });
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        var bg = document.querySelector(".bg");
+        if (bg) bindImageFallback(bg, candidateUrls("img/bg.png"));
+
+        Promise.allSettled([
+          loadStylesheet(candidateUrls("css/GB-canvas-turntable.css")),
+          loadStylesheet(candidateUrls("css/hlhs.css"))
+        ])
+          .then(function (results) {
+            results.forEach(function (res, idx) {
+              if (res.status === "rejected") {
+                var name = idx === 0 ? "GB-canvas-turntable.css" : "hlhs.css";
+                console.warn("activity stylesheet load failed:", name, res.reason);
+              }
+            });
+            return loadScript(candidateUrls("js/GB-canvas-turntable.js"));
+          })
+          .then(function () { initTurntable(); })
+          .catch(function (err) { console.error("activity assets load failed:", err); });
+      });
+    })();
+  </script>
+</body>
+
+</html>

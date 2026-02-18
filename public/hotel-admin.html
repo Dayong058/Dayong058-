@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=0" />
+  <title>酒店后台管理</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121a33;
+      --card: #0f1730;
+      --text: #e9ecff;
+      --muted: #aab2d5;
+      --brand: #6ee7b7;
+      --danger: #fb7185;
+      --warn: #fbbf24;
+      --line: rgba(255, 255, 255, .10);
+      --shadow: 0 14px 40px rgba(0, 0, 0, .35);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(900px 500px at 20% 10%, rgba(110, 231, 183, .15), transparent 60%),
+        radial-gradient(900px 500px at 80% 0%, rgba(59, 130, 246, .16), transparent 55%),
+        var(--bg);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Microsoft YaHei", Segoe UI, Roboto, Arial;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(10px);
+      background: rgba(11, 16, 32, .75);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      gap: 10px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 900;
+      letter-spacing: .5px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 99px;
+      background: var(--brand);
+      box-shadow: 0 0 18px rgba(110, 231, 183, .7);
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .06);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .chip input {
+      width: 180px;
+      background: transparent;
+      color: var(--text);
+      border: none;
+      outline: none;
+      font-size: 13px;
+    }
+
+    .btn {
+      border: none;
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--text);
+      background: rgba(255, 255, 255, .08);
+      border: 1px solid var(--line);
+      transition: transform .15s ease, filter .15s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.06);
+    }
+
+    .btn.primary {
+      background: rgba(110, 231, 183, .14);
+      border-color: rgba(110, 231, 183, .35);
+    }
+
+    .btn.danger {
+      background: rgba(251, 113, 133, .14);
+      border-color: rgba(251, 113, 133, .35);
+    }
+
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 16px 28px;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 14px;
+    }
+
+    .side {
+      background: rgba(18, 26, 51, .55);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      height: fit-content;
+      position: sticky;
+      top: 72px;
+    }
+
+    .menu-title {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 6px 8px 10px;
+    }
+
+    .menu button {
+      width: 100%;
+      text-align: left;
+      padding: 12px 12px;
+      margin: 6px 0;
+      border-radius: 14px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 800;
+      transition: background .15s ease, border-color .15s ease;
+    }
+
+    .menu button.active {
+      background: rgba(110, 231, 183, .12);
+      border-color: rgba(110, 231, 183, .28);
+    }
+
+    .main {
+      background: rgba(18, 26, 51, .55);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+      min-height: 70vh;
+    }
+
+    .header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 6px 6px 12px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 12px;
+    }
+
+    .h-title {
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .h-desc {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 14px;
+    }
+
+    @media (max-width: 960px) {
+      .wrap {
+        grid-template-columns: 1fr;
+      }
+
+      .side {
+        position: relative;
+        top: auto;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .chip input {
+        width: 140px;
+      }
+    }
+
+    .card {
+      background: rgba(15, 23, 48, .55);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      background: rgba(255, 255, 255, .06);
+      font-size: 12px;
+    }
+
+    .form {
+      display: grid;
+      gap: 10px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 800;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(0, 0, 0, .18);
+      color: var(--text);
+      outline: none;
+      font-size: 13px;
+    }
+
+    .field textarea {
+      min-height: 88px;
+      resize: vertical;
+    }
+
+    .progress {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .08);
+      border: 1px solid var(--line);
+      overflow: hidden;
+    }
+
+    .progress>div {
+      height: 100%;
+      width: 0%;
+      background: rgba(110, 231, 183, .7);
+      transition: width .12s ease;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, .55);
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      display: none;
+      z-index: 9999;
+      max-width: calc(100vw - 24px);
+    }
+
+    .muted {
+      color: var(--muted)
+    }
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    a {
+      color: var(--brand);
+      text-decoration: none
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand"><span class="dot"></span> 酒店后台 <span class="muted">· Hotel Admin</span></div>
+      <div class="actions">
+        <div class="chip" title="用于后台写入鉴权：HOTEL_ADMIN_KEY">
+          🔑 <input id="adminKey" class="mono" placeholder="HOTEL_ADMIN_KEY（可选）" />
+        </div>
+        <button class="btn" type="button" onclick="HotelAdmin.reloadAll()">刷新数据</button>
+        <button class="btn primary" type="button" onclick="HotelAdmin.ping()">接口自检</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <aside class="side">
+      <div class="menu-title">模块</div>
+      <div class="menu">
+        <button id="menuCategories" class="active" type="button"
+          onclick="HotelAdmin.switchTab('categories')">分类管理</button>
+        <button id="menuRooms" type="button" onclick="HotelAdmin.switchTab('rooms')">房型管理</button>
+        <button id="menuAnnouncements" type="button" onclick="HotelAdmin.switchTab('announcements')">公告管理</button>
+        <button id="menuBanners" type="button" onclick="HotelAdmin.switchTab('banners')">轮播管理</button>
+        <button id="menuOrders" type="button" onclick="HotelAdmin.switchTab('orders')">预约管理</button>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <div class="muted" style="font-size:12px; font-weight:900;">说明</div>
+        <div class="muted" style="font-size:12px; margin-top:8px; line-height:1.55">
+          1) 写操作需要 <span class="mono">HOTEL_ADMIN_KEY</span>（如果你启用了它）。<br />
+          2) 上传走 <span class="mono">/api/hotel/upload</span>，支持图片/视频，带进度条。<br />
+          3) 订单状态：<span class="mono">pending / approved / rejected</span>（可扩展）。<br />
+          4) Telegram 回调：<span class="mono">/api/hotel/telegram/webhook</span><br />
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="header">
+        <div>
+          <div id="pageTitle" class="h-title">分类管理</div>
+          <div id="pageDesc" class="h-desc">创建/编辑/删除分类，房型会引用分类。</div>
+        </div>
+      </div>
+
+      <!-- 分类 -->
+      <section id="panelCategories" class="grid">
+        <div class="card">
+          <div class="muted" style="font-weight:900;margin-bottom:8px">分类列表</div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:70px">ID</th>
+                <th>名称</th>
+                <th style="width:90px">排序</th>
+                <th style="width:110px">状态</th>
+                <th style="width:150px">操作</th>
+              </tr>
+            </thead>
+            <tbody id="catTbody"></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="muted" style="font-weight:900;margin-bottom:8px">编辑 / 新增分类</div>
+          <div class="form">
+            <div class="field">
+              <label>ID（编辑时自动填）</label>
+              <input id="catId" class="mono" placeholder="留空=新增" />
+            </div>
+            <div class="field">
+              <label>名称</label>
+              <input id="catName" placeholder="如：热门推荐" />
+            </div>
+            <div class="field">
+              <label>排序（越小越靠前）</label>
+              <input id="catSort" class="mono" value="99" />
+            </div>
+            <div class="field">
+              <label>状态</label>
+              <select id="catActive">
+                <option value="true">启用</option>
+                <option value="false">停用</option>
+              </select>
+            </div>
+            <div class="row-actions">
+              <button class="btn primary" type="button" onclick="HotelAdmin.saveCategory()">保存</button>
+              <button class="btn" type="button" onclick="HotelAdmin.resetCatForm()">清空</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 房型 -->
+      <section id="panelRooms" class="grid" style="display:none">
+        <div class="card">
+          <div class="muted" style="font-weight:900;margin-bottom:8px">房型列表</div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:70px">ID</th>
+                <th>房型</th>
+                <th style="width:110px">价格</th>
+                <th style="width:140px">分类</th>
+                <th style="width:110px">状态</th>
+                <th style="width:150px">操作</th>
+              </tr>
+            </thead>
+            <tbody id="roomTbody"></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="muted" style="font-weight:900;margin-bottom:8px">编辑 / 新增房型</div>
+          <div class="form">
+            <div class="field">
+              <label>ID（编辑时自动填）</label>
+              <input id="roomId" class="mono" placeholder="留空=新增" />
+            </div>
+            <div class="field">
+              <label>名称</label>
+              <input id="roomName" placeholder="如：豪华大床房" />
+            </div>
+            <div class="field">
+              <label>分类</label>
+              <select id="roomCategoryId"></select>
+            </div>
+            <div class="field">
+              <label>价格（元/天）</label>
+              <input id="roomPrice" class="mono" placeholder="199" />
+            </div>
+            <div class="field">
+              <label>封面URL（可先上传，再粘贴）</label>
+              <input id="roomCover" class="mono" placeholder="/uploads/hotel/xxx.jpg" />
+            </div>
+            <div class="field">
+              <label>描述</label>
+              <textarea id="roomDesc" placeholder="房型介绍…"></textarea>
+            </div>
+            <div class="field">
+              <label>状态</label>
+              <select id="roomActive">
+                <option value="true">上架</option>
+                <option value="false">下架</option>
+              </select>
+            </div>
+
+            <div class="card" style="padding:10px;margin:2px 0;background:rgba(0,0,0,.12)">
+              <div class="muted" style="font-size:12px;font-weight:900;margin-bottom:8px">上传封面（图片/视频）</div>
+              <input id="uploadFile" type="file" />
+              <div style="height:10px"></div>
+              <div class="progress">
+                <div id="uploadBar"></div>
+              </div>
+              <div id="uploadMsg" class="muted" style="font-size:12px;margin-top:8px"></div>
+              <div style="height:10px"></div>
+              <button class="btn" type="button" onclick="HotelAdmin.uploadCover()">上传</button>
+            </div>
+
+            <div class="row-actions">
+              <button class="btn primary" type="button" onclick="HotelAdmin.saveRoom()">保存</button>
+              <button class="btn" type="button" onclick="HotelAdmin.resetRoomForm()">清空</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 公告 -->
+      <section id="panelAnnouncements" class="grid" style="display:none">
+        <div class="card">
+          <div class="muted" style="font-weight:900;margin-bottom:8px">公告列表</div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:70px">ID</th>
+                <th>内容</th>
+                <th style="width:90px">排序</th>
+                <th style="width:110px">状态</th>
+                <th style="width:150px">操作</th>
+              </tr>
+            </thead>
+            <tbody id="annTbody"></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="muted" style="font-weight:900;margin-bottom:8px">编辑 / 新增公告</div>
+          <div class="form">
+            <div class="field"><label>ID</label><input id="annId" class="mono" placeholder="留空=新增" /></div>
+            <div class="field"><label>内容</label><textarea id="annText" placeholder="如：提前预约更优惠…"></textarea></div>
+            <div class="field"><label>排序</label><input id="annSort" class="mono" value="99" /></div>
+            <div class="field">
+              <label>状态</label>
+              <select id="annActive">
+                <option value="true">启用</option>
+                <option value="false">停用</option>
+              </select>
+            </div>
+            <div class="row-actions">
+              <button class="btn primary" type="button" onclick="HotelAdmin.saveAnnouncement()">保存</button>
+              <button class="btn" type="button" onclick="HotelAdmin.resetAnnouncementForm()">清空</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 轮播 -->
+      <section id="panelBanners" class="grid" style="display:none">
+        <div class="card">
+          <div class="muted" style="font-weight:900;margin-bottom:8px">轮播列表</div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:70px">ID</th>
+                <th>图片</th>
+                <th style="width:160px">链接</th>
+                <th style="width:90px">排序</th>
+                <th style="width:110px">状态</th>
+                <th style="width:150px">操作</th>
+              </tr>
+            </thead>
+            <tbody id="banTbody"></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="muted" style="font-weight:900;margin-bottom:8px">
+            上传轮播图片
+          </div>
+
+          <!-- 隐藏但必须存在，用于自动填入 -->
+          <input id="banImage" type="hidden" />
+
+          <input id="banUploadFile" type="file" accept="image/*" />
+
+          <div style="height:10px"></div>
+
+          <div class="progress">
+            <div id="banUploadBar"></div>
+          </div>
+
+          <div id="banUploadMsg" class="muted" style="font-size:12px;margin-top:8px"></div>
+
+          <div style="height:10px"></div>
+
+          <button class="btn primary" type="button" onclick="HotelAdmin.uploadBannerImage()">
+            上传图片
+          </button>
+        </div>
+      </section>
+
+      <!-- 订单 -->
+      <section id="panelOrders" class="card" style="display:none">
+        <div class="muted" style="font-weight:900;margin-bottom:8px">预约订单</div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:160px">订单号</th>
+              <th>房型/客户</th>
+              <th style="width:120px">日期</th>
+              <th style="width:110px">支付</th>
+              <th style="width:110px">状态</th>
+              <th style="width:220px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="ordTbody"></tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="/asset/js/hotel-admin.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,17 @@
+root = true
+
+[*.{js,mjs,cjs,ts,tsx,jsx,css,scss,html,json,md,yml,yaml,http,conf}]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.ps1]
+charset = utf-8
+end_of_line = crlf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
