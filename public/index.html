@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=0">
   <base href="/">
+  <link rel="icon" href="data:,">
   <title>房总生活服务平台</title>
   <link rel="stylesheet" href="/fangz_home.css?v=20260215-home-rebuild-1">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -22,7 +23,16 @@
       } catch (e) { }
     })();
   </script>
-  �
+  <script>
+    window.closeWelcome =
+      window.closeWelcome ||
+      function () {
+        var overlay = document.getElementById("welcomeOverlay");
+        if (overlay) overlay.style.display = "none";
+        if (document.body) document.body.classList.remove("welcome-active");
+      };
+  </script>
+
   <style>
     html,
     body {
@@ -263,7 +273,7 @@
 
   <section id="myPageInline" class="page-hidden" aria-label="我的页面容器">
     <div class="my-member-page">
-      <div class="my-member-top"><i aria-hidden="true"></i>会员中心</div>
+      <div class="my-member-top" role="button" tabindex="0" onclick="goBackFromMyPage()"><i aria-hidden="true"></i>会员中心</div>
       <div class="my-member-info-card">
         <div class="my-member-user">
           <img src="/images/member/head.png" alt="用户头像">
@@ -280,39 +290,39 @@
             <p>金币</p><span>920</span>
           </div>
           <div class="my-member-item">
-            <p>优惠券</p><span>3</span>
+            <p>优惠券</p><span id="myCouponTotal">3</span>
           </div>
         </div>
       </div>
       <h5 class="my-member-title">我的卡券</h5>
-      <div class="my-member-coupon">
+      <div class="my-member-coupon" id="myCouponSection">
         <ul>
           <li class="active">
             <div class="desc">
-              <p class="type">通用券 3 张</p>
+              <p class="type" id="couponCommonType">通用券 3 张</p>
               <div class="remark">
-                <p>持本券平台商家任意使用。</p>
-                <p>通用券有效期 5 天，不可兑换现金。</p>
+                <p id="couponCommonDesc1">持本券平台商家任意使用。</p>
+                <p id="couponCommonDesc2">通用券有效期 5 天，不可兑换现金。</p>
               </div>
             </div>
             <div class="limit">全场通用券</div>
           </li>
           <li>
             <div class="desc">
-              <p class="type">商家券 2 张</p>
+              <p class="type" id="couponMerchantType">商家券 2 张</p>
               <div class="remark">
-                <p>仅限指定商家店铺使用。</p>
-                <p>专用券有效期 7 天，不可兑换现金。</p>
+                <p id="couponMerchantDesc1">仅限指定商家店铺使用。</p>
+                <p id="couponMerchantDesc2">专用券有效期 7 天，不可兑换现金。</p>
               </div>
             </div>
             <div class="limit">商家专用券</div>
           </li>
           <li>
             <div class="desc">
-              <p class="type">红包 5 个</p>
+              <p class="type" id="couponRedType">红包 5 个</p>
               <div class="remark">
-                <p>下单可抵扣部分支付金额。</p>
-                <p>红包有效期 3 天，不可兑换现金。</p>
+                <p id="couponRedDesc1">下单可抵扣部分支付金额。</p>
+                <p id="couponRedDesc2">红包有效期 3 天，不可兑换现金。</p>
               </div>
             </div>
             <div class="limit">我的红包</div>
@@ -372,7 +382,7 @@
       </div>
       <div class="signin-reward-actions">
         <button type="button" class="reward-btn ghost" onclick="closeSigninRewardModal()">我知道了</button>
-        <button type="button" class="reward-btn solid" onclick="closeSigninRewardModal()">查看优惠券</button>
+        <button type="button" class="reward-btn solid" onclick="viewMyCoupons()">查看优惠券</button>
       </div>
     </div>
   </div>
@@ -413,7 +423,7 @@
       }, true);
     })();
   </script>
-  <script src="/fangz.js?v=20260215-home-rebuild-1"></script>
+  <script src="/fangz.js?v=20260218-signin-coupon-flow-1"></script>
 </body>
 
 </html>

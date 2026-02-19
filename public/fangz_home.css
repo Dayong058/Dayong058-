@@ -1520,7 +1520,7 @@ body.tg-dark {
     overflow-x: hidden;
     background: url("images/member/top-bg.png") top center no-repeat #ffffff;
     background-size: 100% auto;
-    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
 }
 
 .my-member-top {
@@ -1562,7 +1562,7 @@ body.tg-dark {
 
 .my-member-info-card {
     margin: 10px auto 0;
-    border-radius: 15px;
+    border-radius: 16px 16px 16px 16px;
     background: url("/images/member/card-bg.png") center center no-repeat;
     background-size: cover;
     box-shadow: 0 6px 20px rgba(17, 11, 25, 0.2);
@@ -1811,9 +1811,17 @@ h5.my-member-title {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 10px 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    justify-items: center;
 }
 
 .my-member-perks li {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
     color: #202737;
     font-size: 12px;

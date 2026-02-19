@@ -6,9 +6,10 @@ const TAKEOUT_INDEX_URL = `${TAKEOUT_ORIGIN}/index.html`;
 const TAKEOUT_API_HOT = "/api/home/hot";
 const TAKEOUT_API_ANNOUNCEMENTS = "/api/announcements";
 const ACTIVITY_ASSET_VERSION = "20260214-wheel-prod-path-fix-1";
-const HOTEL_ASSET_VERSION = "20260215-hotel-inline-1";
+const HOTEL_ASSET_VERSION = "20260218-hotel-inline-hotfix-1";
 const HOTEL_PAGE_CANDIDATES = ["/hotel.html", "/public/hotel.html"];
 const HOTEL_SCRIPT_CANDIDATES = [
+  "/asset/js/hotel-booking.js",
   "/hotel-booking.js",
   "/public/hotel-booking.js",
 ];
@@ -624,7 +625,7 @@ async function initBannerSlider() {
   let list = [];
 
   try {
-    const res = await fetch("/api/hotel/banners?active_only=1", {
+    const res = await fetch("/api/banners", {
       cache: "no-store",
     });
 
@@ -634,9 +635,13 @@ async function initBannerSlider() {
 
     list = Array.isArray(payload?.list)
       ? payload.list
+          .filter((x) => {
+            const place = normalizeText(x?.place).toLowerCase();
+            return place === "home";
+          })
           .sort((a, b) => (a.sort || 99) - (b.sort || 99))
           .map((x) => ({
-            src: x.image || x.img || "/images/banners/banner-01.webp",
+            src: x.image || x.img || x.src || "/images/banners/banner-01.webp",
             href: x.link || "#",
             alt: x.title || "轮播",
           }))
@@ -769,7 +774,7 @@ function sanitizeStoreButtonText(value, fallback = "进入店铺") {
   if (!text) return fallback;
 
   // 过滤明显乱码
-  if (/锟斤拷|�/.test(text)) return fallback;
+  if (/锟斤拷|\uFFFD/.test(text)) return fallback;
 
   return text;
 }
@@ -1035,6 +1040,252 @@ function openSigninRewardModal({
   if (rewardStreak) {
     rewardStreak.textContent = `累计签到 ${streak} 天`;
   }
+  modal.classList.add("show");
+  modal.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+}
+
+function closeSigninRewardModal() {
+  const modal = document.getElementById("signinRewardModal");
+  if (!modal) return;
+  modal.classList.remove("show");
+  modal.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+}
+
+const COUPON_WALLET_KEY = `couponWallet:${TAKEOUT_CACHE_VERSION}`;
+
+function getDefaultCouponWallet() {
+  return {
+    commonCount: 3,
+    merchantCount: 2,
+    redPacketCount: 5,
+  };
+}
+
+function readCouponWallet() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(COUPON_WALLET_KEY) || "{}");
+    const defaults = getDefaultCouponWallet();
+    return {
+      commonCount: Number.isFinite(Number(raw.commonCount))
+        ? Math.max(0, Number(raw.commonCount))
+        : defaults.commonCount,
+      merchantCount: Number.isFinite(Number(raw.merchantCount))
+        ? Math.max(0, Number(raw.merchantCount))
+        : defaults.merchantCount,
+      redPacketCount: Number.isFinite(Number(raw.redPacketCount))
+        ? Math.max(0, Number(raw.redPacketCount))
+        : defaults.redPacketCount,
+    };
+  } catch {
+    return getDefaultCouponWallet();
+  }
+}
+
+function saveCouponWallet(wallet) {
+  localStorage.setItem(COUPON_WALLET_KEY, JSON.stringify(wallet));
+}
+
+function renderMyCouponWallet() {
+  const wallet = readCouponWallet();
+  const map = {
+    couponCommonType: `通用券 ${wallet.commonCount} 张`,
+    couponCommonDesc1: "持本券平台商家任意使用。",
+    couponCommonDesc2: "通用券有效期 5 天，不可兑换现金。",
+    couponMerchantType: `商家券 ${wallet.merchantCount} 张`,
+    couponMerchantDesc1: "仅限指定商家店铺使用。",
+    couponMerchantDesc2: "专用券有效期 7 天，不可兑换现金。",
+    couponRedType: `红包 ${wallet.redPacketCount} 个`,
+    couponRedDesc1: "下单可抵扣部分支付金额。",
+    couponRedDesc2: "红包有效期 3 天，不可兑换现金。",
+  };
+  Object.entries(map).forEach(([id, text]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  });
+  const totalEl = document.getElementById("myCouponTotal");
+  if (totalEl) {
+    totalEl.textContent = String(
+      Number(wallet.commonCount) +
+        Number(wallet.merchantCount) +
+        Number(wallet.redPacketCount),
+    );
+  }
+}
+
+function addCouponReward(amount) {
+  const wallet = readCouponWallet();
+  const list = [
+    { key: "commonCount", label: "通用券" },
+    { key: "merchantCount", label: "商家券" },
+    { key: "redPacketCount", label: "红包" },
+  ];
+  const picked = list[Math.floor(Math.random() * list.length)];
+  wallet[picked.key] = Number(wallet[picked.key] || 0) + Number(amount || 0);
+  saveCouponWallet(wallet);
+  renderMyCouponWallet();
+  return picked.label;
+}
+
+function viewMyCoupons() {
+  closeSigninRewardModal();
+  switchInlineTab("my").catch(() => {});
+  setTimeout(() => {
+    const section = document.getElementById("myCouponSection");
+    if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 80);
+}
+
+function goBackFromMyPage() {
+  switchInlineTab("home").catch(() => {});
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function doSignin() {
+  const signinBtn = document.querySelector(".signin-btn");
+  const signinMsg = document.getElementById("signinMsg");
+  if (window.signinState.isSigning)
+    return showToast("正在处理中，请勿重复点击", "info");
+
+  const now = Date.now();
+  const timeSinceLast = now - window.signinState.lastSigninTime;
+  if (timeSinceLast < window.signinState.cooldownPeriod) {
+    const remaining = Math.ceil(
+      (window.signinState.cooldownPeriod - timeSinceLast) / 1000,
+    );
+    return showToast(`操作过于频繁，请等待 ${remaining} 秒后重试`, "warning");
+  }
+
+  window.signinState.isSigning = true;
+  window.signinState.lastSigninTime = now;
+
+  if (signinBtn) {
+    signinBtn.innerHTML = '<span class="loading-spinner"></span> 签到中...';
+    signinBtn.style.backgroundColor = "#ccc";
+    signinBtn.disabled = true;
+  }
+
+  setTimeout(() => {
+    try {
+      window.signinState.successCount += 1;
+      const rewards = [
+        {
+          code: "points",
+          label: "积分",
+          amount: Math.floor(Math.random() * 10) + 1,
+        },
+        {
+          code: "coupon",
+          label: "优惠券",
+          amount: Math.floor(Math.random() * 3) + 1,
+        },
+        {
+          code: "coin",
+          label: "金币",
+          amount: Math.floor(Math.random() * 50) + 10,
+        },
+      ];
+      const reward = rewards[Math.floor(Math.random() * rewards.length)];
+
+      let rewardType = reward.label;
+      const rewardAmount = reward.amount;
+      if (reward.code === "coupon") {
+        rewardType = addCouponReward(rewardAmount);
+      }
+
+      if (signinMsg) {
+        signinMsg.innerHTML = "";
+        signinMsg.className = "signin-message";
+      }
+
+      showToast(`签到成功，获得 ${rewardAmount}${rewardType}`, "success");
+      openSigninRewardModal({
+        rewardType,
+        rewardAmount,
+        streak: window.signinState.successCount,
+      });
+
+      const couponElement = document.getElementById("statCoupon");
+      if (couponElement && reward.code === "coupon") {
+        const cur =
+          parseInt(couponElement.textContent.replace(/,/g, ""), 10) || 0;
+        couponElement.textContent = (cur + rewardAmount).toLocaleString();
+      }
+
+      localStorage.setItem("lastSigninDate", new Date().toDateString());
+      localStorage.setItem(
+        "signinStreak",
+        String(window.signinState.successCount),
+      );
+
+      if (signinBtn) {
+        signinBtn.textContent = "已签到";
+        signinBtn.classList.add("is-signed");
+        signinBtn.style.backgroundColor = "";
+        signinBtn.disabled = true;
+      }
+    } catch (error) {
+      console.error("签到处理失败:", error);
+      if (signinMsg) {
+        signinMsg.innerHTML = "";
+        signinMsg.className = "signin-message";
+      }
+      showToast("签到失败，请稍后重试", "error");
+      if (signinBtn) {
+        signinBtn.textContent = "签到";
+        signinBtn.classList.remove("is-signed");
+        signinBtn.style.backgroundColor = "";
+        signinBtn.disabled = false;
+      }
+    } finally {
+      window.signinState.isSigning = false;
+      setTimeout(() => {
+        if (signinMsg) {
+          signinMsg.innerHTML = "";
+          signinMsg.className = "signin-message";
+        }
+      }, 5000);
+    }
+  }, 1000);
+}
+
+function initSigninState() {
+  renderMyCouponWallet();
+  const today = new Date().toDateString();
+  const lastSigninDate = localStorage.getItem("lastSigninDate");
+  const signinBtn = document.querySelector(".signin-btn");
+  if (!signinBtn) return;
+
+  if (lastSigninDate === today) {
+    signinBtn.textContent = "已签到";
+    signinBtn.classList.add("is-signed");
+    signinBtn.style.backgroundColor = "";
+    signinBtn.disabled = true;
+    window.signinState.successCount = parseInt(
+      localStorage.getItem("signinStreak") || "0",
+      10,
+    );
+  } else {
+    signinBtn.innerHTML = "签到";
+    signinBtn.classList.remove("is-signed");
+    signinBtn.style.backgroundColor = "";
+    signinBtn.disabled = false;
+  }
+}
+
+function openSigninRewardModal({
+  rewardType = "",
+  rewardAmount = 0,
+  streak = 0,
+} = {}) {
+  const modal = document.getElementById("signinRewardModal");
+  if (!modal) return;
+  const rewardText = document.getElementById("signinRewardText");
+  const rewardStreak = document.getElementById("signinRewardStreak");
+  if (rewardText)
+    rewardText.textContent = `本次获得 ${rewardAmount}${rewardType}`;
+  if (rewardStreak) rewardStreak.textContent = `累计签到 ${streak} 天`;
   modal.classList.add("show");
   modal.setAttribute("aria-hidden", "false");
   document.body.style.overflow = "hidden";
@@ -1654,6 +1905,16 @@ function initEventListeners() {
     }),
   );
 
+  const myTop = document.querySelector("#myPageInline .my-member-top");
+  if (myTop) {
+    myTop.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        goBackFromMyPage();
+      }
+    });
+  }
+
   document.querySelectorAll(".nav-btn").forEach((btn) =>
     btn.addEventListener("click", function () {
       const tabKey = normalizeText(this.dataset?.tab).toLowerCase();
@@ -1808,10 +2069,12 @@ window.doSearch = doSearch;
 window.doSignin = doSignin;
 window.goToCategory = goToCategory;
 window.toggleMerchantEntry = toggleMerchantEntry;
+window.goBackFromMyPage = goBackFromMyPage;
 window.openUrl = openUrl;
 window.showToast = showToast;
 window.nextWelcomeData = nextWelcomeData;
 window.closeSigninRewardModal = closeSigninRewardModal;
+window.viewMyCoupons = viewMyCoupons;
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initializePage);

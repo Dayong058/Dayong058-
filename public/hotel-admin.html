@@ -593,6 +593,35 @@
             上传图片
           </button>
         </div>
+
+        <div class="card">
+          <div class="muted" style="font-weight:900;margin-bottom:8px">编辑 / 新增轮播</div>
+          <div class="form">
+            <div class="field">
+              <label>ID</label>
+              <input id="banId" class="mono" placeholder="留空=新增" readonly />
+            </div>
+            <div class="field">
+              <label>跳转链接</label>
+              <input id="banLink" class="mono" placeholder="如：https://example.com 或 /path" />
+            </div>
+            <div class="field">
+              <label>排序</label>
+              <input id="banSort" class="mono" value="99" />
+            </div>
+            <div class="field">
+              <label>状态</label>
+              <select id="banActive">
+                <option value="true">启用</option>
+                <option value="false">停用</option>
+              </select>
+            </div>
+            <div class="row-actions">
+              <button class="btn primary" type="button" onclick="HotelAdmin.saveBanner()">保存</button>
+              <button class="btn" type="button" onclick="HotelAdmin.resetBannerForm()">清空</button>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- 订单 -->

@@ -538,11 +538,20 @@ const HotelAdmin = (() => {
 
   // ================= 轮播 =================
   function fillBannerForm(b) {
-    qs("banId").value = String(b.id || "");
-    qs("banImage").value = String(b.image || "");
-    qs("banLink").value = String(b.link || "");
-    qs("banSort").value = String(Number(b.sort || 99));
-    qs("banActive").value = b.active === false ? "false" : "true";
+    const idEl = qs("banId");
+    const imageEl = qs("banImage");
+    const linkEl = qs("banLink");
+    const sortEl = qs("banSort");
+    const activeEl = qs("banActive");
+    if (!imageEl || !linkEl || !sortEl || !activeEl) {
+      toast("轮播编辑表单未找到，请刷新页面后重试");
+      return;
+    }
+    if (idEl) idEl.value = String(b.id || "");
+    imageEl.value = String(b.image || "");
+    linkEl.value = String(b.link || "");
+    sortEl.value = String(Number(b.sort || 99));
+    activeEl.value = b.active === false ? "false" : "true";
     toast("已载入轮播到表单");
   }
 
