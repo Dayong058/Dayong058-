@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "hotel": "华庭之星",
+    "roomType": "豪华大床房",
+    "price": 299,
+    "checkin": "2026-02-24",
+    "checkout": "2026-02-25",
+    "payment": "wechat",
+    "tgUser": "tester",
+    "tgId": "10001",
+    "clientRequestId": "e2e-test-001",
+    "id": "HOTEL_1771809982229_9c6430",
+    "status": "approved",
+    "createdAt": "2026-02-23T01:26:22.228Z",
+    "idempotencyKey": "e2e-test-001",
+    "updatedAt": "2026-02-23T01:26:22.240Z"
+  }
+]

@@ -7,7 +7,11 @@
     "desc": "烤鸭/1.2km/评分4.9/下单返券",
     "img": "/images/store-jingyushan.webp",
     "link": "/apps/takeout/entry.html?shop=jingyushan",
-    "tags": ["烤鸭", "中餐"]
+    "tags": [
+      "烤鸭",
+      "中餐"
+    ],
+    "shopId": "jingyushan"
   },
   {
     "id": "podian",
@@ -17,7 +21,11 @@
     "desc": "烤鱼/1.5km/评分4.7/送饮料",
     "img": "/images/store2.webp",
     "link": "/apps/takeout/entry.html?shop=podian",
-    "tags": ["烤鱼", "夜宵"]
+    "tags": [
+      "烤鱼",
+      "夜宵"
+    ],
+    "shopId": "podian"
   },
   {
     "id": "jinshoushao",
@@ -27,7 +35,11 @@
     "desc": "家常菜/900m/评分4.8/满减",
     "img": "/images/store-jinshoushao.webp",
     "link": "/apps/takeout/entry.html?shop=jinshoushao",
-    "tags": ["家常菜", "快餐"]
+    "tags": [
+      "家常菜",
+      "快餐"
+    ],
+    "shopId": "jinshoushao"
   },
   {
     "id": "m123456",
@@ -39,6 +51,7 @@
     "desc": "测试商户",
     "tags": [],
     "updatedAt": "2026-02-08T08:50:27.431Z",
-    "createdAt": "2026-02-08T08:50:27.431Z"
+    "createdAt": "2026-02-08T08:50:27.431Z",
+    "shopId": "m123456"
   }
 ]

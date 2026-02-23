@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>发布求购 | 二手市场</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    :root {
+      --bg1: #fff1e6;
+      --bg2: #ffe6f3;
+      --bg3: #fff8d6;
+      --bg4: #e8fff6;
+      --card: rgba(255, 255, 255, .82);
+      --line: rgba(17, 24, 39, .10);
+      --text: #121826;
+      --muted: rgba(18, 24, 38, .62);
+      --teal: #4ecdc4;
+      --green: #06d6a0;
+      --purple: #7c5cff;
+      --shadow: 0 18px 48px rgba(17, 24, 39, .14);
+      --r: 18px;
+      --safeB: env(safe-area-inset-bottom, 0px);
+      --safeT: env(safe-area-inset-top, 0px);
+      --ease: cubic-bezier(.2, .8, .2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(900px 700px at 10% 0%, rgba(78, 205, 196, .20), transparent 60%),
+        radial-gradient(900px 700px at 90% 10%, rgba(6, 214, 160, .16), transparent 55%),
+        radial-gradient(900px 700px at 20% 95%, rgba(124, 92, 255, .14), transparent 55%),
+        linear-gradient(180deg, var(--bg1), var(--bg2) 35%, var(--bg3) 70%, var(--bg4));
+      background-attachment: fixed;
+      padding: calc(14px + var(--safeT)) 14px calc(18px + var(--safeB)) 14px;
+    }
+
+    .topbar {
+      position: sticky;
+      top: calc(8px + var(--safeT));
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, .78);
+      border: 1px solid rgba(17, 24, 39, .10);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, rgba(78, 205, 196, .24), rgba(124, 92, 255, .20));
+      border: 1px solid rgba(17, 24, 39, .10);
+    }
+
+    .title {
+      font-weight: 900;
+      letter-spacing: .2px;
+    }
+
+    .sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .btn {
+      border: none;
+      cursor: pointer;
+      border-radius: 16px;
+      padding: 10px 14px;
+      font-weight: 900;
+      transition: transform 140ms var(--ease), filter 140ms var(--ease), box-shadow 140ms var(--ease);
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn:active {
+      transform: translateY(1px) scale(.985);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--teal), var(--green));
+      color: #061417;
+      box-shadow: 0 18px 34px rgba(78, 205, 196, .22);
+    }
+
+    .btn-ghost {
+      background: rgba(18, 24, 38, .06);
+      color: rgba(18, 24, 38, .85);
+      border: 1px solid rgba(17, 24, 39, .10);
+      box-shadow: 0 10px 22px rgba(17, 24, 39, .06);
+    }
+
+    .wrap {
+      width: min(900px, 100%);
+      margin: 14px auto 0;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(17, 24, 39, .10);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      background:
+        radial-gradient(280px 200px at 10% 0%, rgba(78, 205, 196, .18), transparent 60%),
+        radial-gradient(280px 200px at 100% 10%, rgba(6, 214, 160, .14), transparent 60%),
+        radial-gradient(320px 260px at 80% 120%, rgba(124, 92, 255, .14), transparent 55%);
+      opacity: .0;
+      filter: blur(10px);
+      transition: opacity 220ms var(--ease);
+      pointer-events: none;
+    }
+
+    .card:hover::after {
+      opacity: 1;
+    }
+
+    .cardHead {
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid rgba(17, 24, 39, .08);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(78, 205, 196, .14);
+      border: 1px solid rgba(78, 205, 196, .22);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .cardBody {
+      padding: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 720px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 900;
+      color: rgba(18, 24, 38, .70);
+      margin: 0 0 6px 2px;
+    }
+
+    .input,
+    .select,
+    .textarea {
+      width: 100%;
+      border-radius: 16px;
+      border: 1px solid rgba(17, 24, 39, .10);
+      background: rgba(255, 255, 255, .92);
+      padding: 12px 12px;
+      outline: none;
+      color: var(--text);
+      transition: box-shadow 220ms var(--ease), border-color 220ms var(--ease);
+    }
+
+    .textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .input:focus,
+    .select:focus,
+    .textarea:focus {
+      border-color: rgba(124, 92, 255, .28);
+      box-shadow: 0 0 0 6px rgba(124, 92, 255, .14);
+    }
+
+    .hint {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .preview {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 560px) {
+      .preview {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .thumb {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 14px;
+      border: 1px solid rgba(17, 24, 39, .10);
+      overflow: hidden;
+      background: rgba(255, 255, 255, .75);
+      box-shadow: 0 10px 22px rgba(17, 24, 39, .08);
+      transform: translateY(0);
+      transition: transform 220ms var(--ease), box-shadow 220ms var(--ease);
+    }
+
+    .thumb:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px rgba(17, 24, 39, .12);
+    }
+
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      padding: 14px;
+      border-top: 1px solid rgba(17, 24, 39, .08);
+      background: rgba(255, 255, 255, .66);
+    }
+
+    .actions .btn {
+      flex: 1;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(16px + var(--safeB));
+      transform: translateX(-50%);
+      background: rgba(18, 24, 38, .88);
+      color: rgba(255, 255, 255, .95);
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-size: 13px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, .22);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 220ms var(--ease), transform 220ms var(--ease);
+      z-index: 99;
+      max-width: min(520px, calc(100% - 24px));
+      text-align: center;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-2px);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">🛒</div>
+      <div>
+        <div class="title">发布求购</div>
+        <div class="sub">想要什么直接写清楚，成交更快</div>
+      </div>
+    </div>
+    <button class="btn btn-ghost" id="backBtn">返回</button>
+  </div>
+
+  <div class="wrap">
+    <div class="card">
+      <div class="cardHead">
+        <div>
+          <div class="badge">🔎 我要淘宝（求购）</div>
+          <div class="hint">必填：标题 / 预算 / 分类 / 位置 / 描述（可不传图）</div>
+        </div>
+        <div class="hint" id="tgInfo"></div>
+      </div>
+
+      <form id="buyForm">
+        <div class="cardBody">
+          <div class="grid">
+            <div>
+              <label>求购标题 *</label>
+              <input class="input" name="title" maxlength="50" placeholder="例如：收一台二手 Switch OLED" required />
+            </div>
+            <div>
+              <label>预算(元) *</label>
+              <input class="input" name="price" type="number" step="0.01" placeholder="例如：1200" required />
+              <div class="hint">这里用 price 字段作为预算（后端字段统一）</div>
+            </div>
+
+            <div>
+              <label>分类 *</label>
+              <select class="select" name="category" id="categorySel" required>
+                <option value="">加载中...</option>
+              </select>
+            </div>
+
+            <div>
+              <label>位置 *</label>
+              <input class="input" name="location" placeholder="例如：同城面交优先" required />
+            </div>
+
+            <div>
+              <label>成色要求</label>
+              <select class="select" name="condition">
+                <option value="全新">全新</option>
+                <option value="几乎全新">几乎全新</option>
+                <option value="轻微使用" selected>轻微使用</option>
+                <option value="明显使用">明显使用</option>
+                <option value="需要维修">需要维修</option>
+              </select>
+            </div>
+
+            <div>
+              <label>交易方式偏好</label>
+              <select class="select" name="transactionType">
+                <option value="面交" selected>面交</option>
+                <option value="邮寄">邮寄</option>
+                <option value="均可">均可</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-top:10px;">
+            <label>详细描述 *</label>
+            <textarea class="textarea" name="description" maxlength="500" placeholder="写清楚：型号/颜色/配置/成色要求/预算上限/是否接受邮寄…"
+              required></textarea>
+          </div>
+
+          <div style="margin-top:10px;">
+            <label>参考图片（可选，最多9张）</label>
+            <input class="input" style="padding:10px;" type="file" id="images" name="images" accept="image/*"
+              multiple />
+            <div class="hint">可不传。上传参考图能减少沟通成本。</div>
+            <div class="preview" id="imgPreview"></div>
+          </div>
+
+          <div style="margin-top:10px;">
+            <label>参考视频（可选，10MB以内）</label>
+            <input class="input" style="padding:10px;" type="file" id="video" name="video" accept="video/*" />
+            <div class="hint" id="videoHint">可不传。</div>
+          </div>
+
+          <input type="hidden" name="telegramId" id="telegramId" />
+          <input type="hidden" name="type" value="buy" />
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn btn-ghost" id="resetBtn">清空</button>
+          <button type="submit" class="btn btn-primary" id="submitBtn">发布求购</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const API_BASE = "/second-hand-api";
+
+    function toast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = String(msg || "");
+      t.classList.add("show");
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => t.classList.remove("show"), 1800);
+      try {
+        if (window.Telegram?.WebApp?.showPopup) Telegram.WebApp.showPopup({ message: String(msg) });
+      } catch { }
+    }
+
+    function getTgid() {
+      const u = new URL(location.href);
+      const qid = u.searchParams.get("tgid");
+      if (qid) return qid;
+      return window.Telegram?.WebApp?.initDataUnsafe?.user?.id || "";
+    }
+
+    async function api(path, opt) {
+      const res = await fetch(API_BASE + path, {
+        method: opt?.method || "GET",
+        headers: opt?.headers,
+        body: opt?.body
+      });
+      const j = await res.json().catch(() => null);
+      if (!j || j.ok !== true) throw new Error(j?.msg || "请求失败");
+      return j.data;
+    }
+
+    (function initTelegram() {
+      try {
+        if (window.Telegram?.WebApp) {
+          Telegram.WebApp.ready();
+          Telegram.WebApp.expand();
+        }
+      } catch { }
+    })();
+
+    document.getElementById("backBtn").addEventListener("click", () => {
+      if (history.length > 1) history.back();
+      else location.href = "/second-hand/index.html";
+    });
+
+    const tgid = String(getTgid() || "");
+    document.getElementById("telegramId").value = tgid;
+    document.getElementById("tgInfo").textContent = tgid ? ("TGID: " + tgid) : "TGID: 未识别";
+
+    async function loadCategories() {
+      const sel = document.getElementById("categorySel");
+      sel.innerHTML = `<option value="">加载中...</option>`;
+      try {
+        const cats = await api("/categories");
+        sel.innerHTML = `<option value="">请选择分类</option>`;
+        for (const c of cats) {
+          const opt = document.createElement("option");
+          opt.value = c.id;
+          opt.textContent = `${c.icon || "📦"} ${c.name || c.id}`;
+          sel.appendChild(opt);
+        }
+      } catch (e) {
+        sel.innerHTML = `<option value="">分类加载失败</option>`;
+        toast("分类加载失败：" + (e.message || ""));
+      }
+    }
+
+    const imgInput = document.getElementById("images");
+    const imgPreview = document.getElementById("imgPreview");
+    imgInput.addEventListener("change", () => {
+      imgPreview.innerHTML = "";
+      const files = Array.from(imgInput.files || []).slice(0, 9);
+      if ((imgInput.files || []).length > 9) toast("最多只能选 9 张图片");
+      for (const f of files) {
+        const url = URL.createObjectURL(f);
+        const box = document.createElement("div");
+        box.className = "thumb";
+        box.innerHTML = `<img src="${url}" alt="">`;
+        imgPreview.appendChild(box);
+      }
+    });
+
+    const videoInput = document.getElementById("video");
+    const videoHint = document.getElementById("videoHint");
+    videoInput.addEventListener("change", () => {
+      const f = videoInput.files?.[0];
+      if (!f) { videoHint.textContent = "可不传。"; return; }
+      const mb = (f.size / (1024 * 1024)).toFixed(2);
+      videoHint.textContent = `已选择：${f.name}（${mb}MB）`;
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      document.getElementById("buyForm").reset();
+      document.getElementById("telegramId").value = tgid;
+      imgPreview.innerHTML = "";
+      videoHint.textContent = "可不传。";
+    });
+
+    document.getElementById("buyForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const btn = document.getElementById("submitBtn");
+      btn.disabled = true;
+      btn.style.filter = "grayscale(.2)";
+      btn.textContent = "发布中...";
+
+      try {
+        const fd = new FormData(e.target);
+
+        const imgs = Array.from(imgInput.files || []);
+        if (imgs.length > 9) throw new Error("最多上传 9 张图片");
+
+        const must = ["title", "price", "category", "location", "description"];
+        for (const k of must) {
+          const v = String(fd.get(k) || "").trim();
+          if (!v) throw new Error("请填写必填项：" + k);
+          fd.set(k, v);
+        }
+
+        if (!fd.get("telegramId")) fd.set("telegramId", "");
+
+        const created = await api("/items", { method: "POST", body: fd });
+        toast("求购发布成功 ✅");
+
+        setTimeout(() => {
+          location.href = "/second-hand/index.html";
+        }, 350);
+
+      } catch (err) {
+        toast(err.message || "发布失败");
+      } finally {
+        btn.disabled = false;
+        btn.style.filter = "";
+        btn.textContent = "发布求购";
+      }
+    });
+
+    loadCategories();
+  </script>
+</body>
+
+</html>

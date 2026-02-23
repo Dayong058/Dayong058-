@@ -10,13 +10,23 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
 const MAIN_ORIGIN = "https://fangz9999.vip";
-const QQ_ORIGIN = "https://qq.fangz9999.vip";
+const takeoutOrigin = "https://qq.fangz9999.vip";
+const takeoutDataOrigin = String(
+  process.env.takeout_data_origin || process.env.TAKEOUT_DATA_ORIGIN || process.env.QQ_DATA_ORIGIN || takeoutOrigin,
+)
+  .trim()
+  .replace(/\/+$/, "");
+const allowLocalMerchantFallback = String(
+  process.env.ALLOW_LOCAL_MERCHANT_FALLBACK || "0",
+).trim() === "1";
 
+const DATA_DIR = path.join(__dirname, "data");
 const STORAGE_DIR = path.join(__dirname, "storage");
 const CONFIG_DIR = path.join(__dirname, "config");
 const PUBLIC_DIR = path.join(__dirname, "public");
 const APPS_DIR = path.join(__dirname, "apps");
 
+const MERCHANTS_FILE_PATH = path.join(DATA_DIR, "merchants.json");
 const ANNOUNCEMENTS_FILE_PATH = path.join(STORAGE_DIR, "announcements.json");
 const USERS_FILE_PATH = path.join(STORAGE_DIR, "users.json");
 const STORES_FILE_PATH = path.join(CONFIG_DIR, "stores.json");
@@ -62,6 +72,222 @@ function parseLimit(v, fallback = 50, max = 500) {
   return Math.min(n, max);
 }
 
+function toSafeShopId(raw) {
+  const s = String(raw ?? "").trim().toLowerCase();
+  if (!s) return "";
+  const out = s.replace(/\s+/g, "-").replace(/[^a-z0-9_-]/g, "");
+  return out.slice(0, 64);
+}
+
+function stableHashBase36(input) {
+  const text = String(input ?? "");
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < text.length; i += 1) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(36);
+}
+
+function extractShopIdFromLink(link) {
+  const raw = String(link ?? "").trim();
+  if (!raw) return "";
+  try {
+    const u = new URL(raw, takeoutOrigin);
+    const byShopId = toSafeShopId(u.searchParams.get("shopId"));
+    if (byShopId) return byShopId;
+    const byShop = toSafeShopId(u.searchParams.get("shop"));
+    if (byShop) return byShop;
+    const byId = toSafeShopId(u.searchParams.get("id"));
+    if (byId) return byId;
+  } catch (_e) {
+    // ignore invalid URL
+  }
+  return "";
+}
+
+function normalizeStoresWithShopId(raw) {
+  const srcList = normalizeList(raw);
+  const list = Array.isArray(srcList) ? srcList : [];
+  let changed = false;
+
+  const normalized = list.map((item, idx) => {
+    const row = item && typeof item === "object" ? { ...item } : {};
+    const existing = toSafeShopId(row.shopId);
+
+    let shopId =
+      existing ||
+      toSafeShopId(row.shop) ||
+      toSafeShopId(row.id) ||
+      toSafeShopId(row.storeId) ||
+      extractShopIdFromLink(row.link);
+
+    if (!shopId) {
+      const basis = [
+        row.name,
+        row.title,
+        row.link,
+        row.address,
+        row.phone,
+        row.contact,
+      ]
+        .map((x) => String(x || "").trim())
+        .filter(Boolean)
+        .join("|");
+      shopId = `shop_${stableHashBase36(basis || JSON.stringify(row) || String(idx))}`;
+    }
+
+    if (row.shopId !== shopId) {
+      row.shopId = shopId;
+      changed = true;
+    }
+
+    return row;
+  });
+
+  return { list: normalized, changed };
+}
+
+function saveStoresListLikeOriginal(raw, list) {
+  if (Array.isArray(raw)) return writeJsonFile(STORES_FILE_PATH, list);
+  if (raw && typeof raw === "object") {
+    if (Array.isArray(raw.stores)) {
+      return writeJsonFile(STORES_FILE_PATH, {
+        ...raw,
+        stores: list,
+        updatedAt: new Date().toISOString(),
+      });
+    }
+    if (Array.isArray(raw.list)) {
+      return writeJsonFile(STORES_FILE_PATH, {
+        ...raw,
+        list,
+        updatedAt: new Date().toISOString(),
+      });
+    }
+  }
+  return writeJsonFile(STORES_FILE_PATH, {
+    stores: list,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+function normalizeMerchantRecord(item, idx) {
+  const row = item && typeof item === "object" ? { ...item } : {};
+  const shopId =
+    toSafeShopId(row.shopId) ||
+    toSafeShopId(row.id) ||
+    toSafeShopId(row.storeId) ||
+    toSafeShopId(row.merchantId) ||
+    toSafeShopId(row.shop) ||
+    extractShopIdFromLink(row.link) ||
+    `shop_${stableHashBase36(JSON.stringify(row) || String(idx))}`;
+
+  return {
+    ...row,
+    shopId,
+    id: toSafeShopId(row.id) || shopId,
+    name: String(row.name || row.storeName || row.merchantName || row.shop_name || row.title || "").trim(),
+    link:
+      String(row.link || row.orderUrl || row.url || "").trim() ||
+      `/apps/takeout/entry.html?shop=${encodeURIComponent(shopId)}`,
+  };
+}
+
+function readMerchantRegistry() {
+  const merchantRaw = readJsonFile(MERCHANTS_FILE_PATH, null);
+  const merchantList = normalizeList(merchantRaw);
+  if (merchantList.length) {
+    return merchantList.map(normalizeMerchantRecord);
+  }
+
+  const rawStores = readJsonFile(STORES_FILE_PATH, { stores: [] });
+  const normalized = normalizeStoresWithShopId(rawStores);
+  if (normalized.changed) {
+    saveStoresListLikeOriginal(rawStores, normalized.list);
+  }
+  return normalized.list.map((it, idx) => normalizeMerchantRecord(it, idx));
+}
+
+async function fetchRemoteMerchantRegistry() {
+  if (!takeoutDataOrigin) return [];
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 4000);
+  try {
+    const url = `${takeoutDataOrigin}/data/merchants.json?_=${Date.now()}`;
+    const res = await fetch(url, {
+      method: "GET",
+      cache: "no-store",
+      signal: controller.signal,
+      headers: {
+        accept: "application/json",
+      },
+    });
+    if (!res.ok) return [];
+    const payload = await res.json().catch(() => null);
+    const list = normalizeList(payload);
+    if (!Array.isArray(list) || list.length === 0) return [];
+    return list.map(normalizeMerchantRecord);
+  } catch (_e) {
+    return [];
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function normalizeListLike(input) {
+  if (Array.isArray(input)) return input;
+  if (input && Array.isArray(input.list)) return input.list;
+  if (input && Array.isArray(input.data)) return input.data;
+  if (input && Array.isArray(input.items)) return input.items;
+  return [];
+}
+
+function readShopJsonList(shop, fileName) {
+  const sid = toSafeShopId(shop);
+  if (!sid) return [];
+  const filePath = path.join(DATA_DIR, sid, fileName);
+  const raw = readJsonFile(filePath, []);
+  return normalizeListLike(raw);
+}
+
+function findMerchantByShop(shop) {
+  const sid = toSafeShopId(shop);
+  if (!sid) return null;
+  const list = readMerchantRegistry();
+  return list.find((it) => toSafeShopId(it?.shopId || it?.id) === sid) || null;
+}
+
+function buildShopDbPayload(shop) {
+  const sid = toSafeShopId(shop);
+  if (!sid) return null;
+
+  const merchant = findMerchantByShop(sid) || { shop: sid, shopId: sid, id: sid };
+  const banners = readShopJsonList(sid, "banners.json");
+  const categories = readShopJsonList(sid, "categories.json");
+  const dishes = readShopJsonList(sid, "dishes.json");
+  const reviews = readShopJsonList(sid, "reviews.json");
+
+  const hasAny =
+    !!merchant?.name ||
+    banners.length > 0 ||
+    categories.length > 0 ||
+    dishes.length > 0 ||
+    reviews.length > 0;
+  if (!hasAny) return null;
+
+  return {
+    shop: sid,
+    merchant,
+    banners,
+    categories,
+    dishes,
+    reviews,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+ensureDirectory(DATA_DIR);
 ensureDirectory(STORAGE_DIR);
 ensureDirectory(CONFIG_DIR);
 ensureDirectory(PUBLIC_DIR);
@@ -85,7 +311,7 @@ app.use(
   cors({
     origin: function (origin, callback) {
       if (!origin) return callback(null, true);
-      if (origin === MAIN_ORIGIN || origin === QQ_ORIGIN) return callback(null, true);
+      if (origin === MAIN_ORIGIN || origin === takeoutOrigin) return callback(null, true);
       return callback(new Error("CORS origin not allowed"));
     },
     methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -143,11 +369,20 @@ app.post("/api/telegram/webhook", async (req, res) => {
 app.use(hotelBookingRouter);
 
 // Main-site read APIs
+app.get("/health", (_req, res) => {
+  return res.json({ status: "ok", uptime: process.uptime() });
+});
+
 app.get("/api/test", (_req, res) => {
   res.json({ ok: true, timestamp: new Date().toISOString() });
 });
 
 app.get("/api/banners", (req, res) => {
+  const shop = toSafeShopId(req.query?.shop || req.query?.shopId || req.query?.id);
+  if (shop) {
+    const data = readShopJsonList(shop, "banners.json");
+    return res.json({ ok: true, data, list: data });
+  }
   const raw = readJsonFile(path.join(CONFIG_DIR, "banners.json"), { list: [] });
   let list = normalizeList(raw);
   if (!parseBool(req.query?.all)) list = list.filter((it) => it && it.active !== false);
@@ -161,12 +396,78 @@ app.get("/api/home/hot", (req, res) => {
   return res.json({ ok: true, list });
 });
 
-app.get("/api/home/stores", (req, res) => {
-  const raw = readJsonFile(STORES_FILE_PATH, { stores: [] });
-  let list = normalizeList(raw);
+app.get("/api/home/stores", async (req, res) => {
+  // Final rule: prioritize merchants.json from takeout origin, fallback to local registry.
+  let source = "remote";
+  let list = await fetchRemoteMerchantRegistry();
+  if (!list.length && allowLocalMerchantFallback) {
+    list = readMerchantRegistry();
+    source = "local-fallback";
+  }
+  if (!list.length) source = "remote-empty";
   if (!parseBool(req.query?.all)) list = list.filter((it) => it && it.active !== false);
   const limit = parseLimit(req.query?.limit, 30, 200);
-  return res.json({ ok: true, list: list.slice(0, limit), total: list.length });
+  return res.json({ ok: true, source, list: list.slice(0, limit), total: list.length });
+});
+
+app.get("/api/merchants", async (req, res) => {
+  const shopId = toSafeShopId(req.query?.shop || req.query?.shopId || req.query?.id);
+  // Final rule: prioritize merchants.json from takeout origin, fallback to local registry.
+  let source = "remote";
+  let list = await fetchRemoteMerchantRegistry();
+  if (!list.length && allowLocalMerchantFallback) {
+    list = readMerchantRegistry();
+    source = "local-fallback";
+  }
+  if (!list.length) source = "remote-empty";
+  if (shopId) {
+    list = list.filter((it) => toSafeShopId(it?.shopId) === shopId);
+  }
+  if (!parseBool(req.query?.all)) list = list.filter((it) => it && it.active !== false);
+  return res.json({ ok: true, source, list, total: list.length });
+});
+
+app.get("/api/merchant", (req, res) => {
+  const shop = toSafeShopId(req.query?.shop || req.query?.shopId || req.query?.id);
+  if (!shop) return res.status(400).json({ ok: false, msg: "missing:shop" });
+  const merchant = findMerchantByShop(shop);
+  if (!merchant) return res.status(404).json({ ok: false, msg: "not_found" });
+  return res.json({ ok: true, data: merchant, merchant });
+});
+
+app.get("/api/categories", (req, res) => {
+  const shop = toSafeShopId(req.query?.shop || req.query?.shopId || req.query?.id);
+  if (!shop) return res.status(400).json({ ok: false, msg: "missing:shop" });
+  const data = readShopJsonList(shop, "categories.json");
+  return res.json({ ok: true, data, list: data });
+});
+
+app.get("/api/dishes", (req, res) => {
+  const shop = toSafeShopId(req.query?.shop || req.query?.shopId || req.query?.id);
+  if (!shop) return res.status(400).json({ ok: false, msg: "missing:shop" });
+  const data = readShopJsonList(shop, "dishes.json");
+  return res.json({ ok: true, data, list: data });
+});
+
+app.get("/api/reviews", (req, res) => {
+  const shop = toSafeShopId(req.query?.shop || req.query?.shopId || req.query?.id);
+  if (!shop) return res.status(400).json({ ok: false, msg: "missing:shop" });
+  const data = readShopJsonList(shop, "reviews.json");
+  return res.json({ ok: true, data, list: data });
+});
+
+app.get("/db/:shop.json", (req, res) => {
+  const shop = toSafeShopId(req.params.shop);
+  const payload = buildShopDbPayload(shop);
+  if (!payload) return res.status(404).json({ ok: false, msg: "not_found" });
+  return res.json(payload);
+});
+
+app.get("/db_multi/:shop.json", (req, res) => {
+  const shop = toSafeShopId(req.params.shop);
+  const payload = buildShopDbPayload(shop);
+  if (!payload) return res.status(404).json({ ok: false, msg: "not_found" });
+  return res.json(payload);
 });
 
 app.get("/api/announcements", (req, res) => {
@@ -332,6 +633,7 @@ app.post("/api/log", (req, res) => {
 });
 
 app.use("/apps", express.static(APPS_DIR));
+app.use("/data", express.static(DATA_DIR));
 app.use(express.static(PUBLIC_DIR));
 
 function errorHandler(err, req, res, _next) {
@@ -348,6 +650,12 @@ app.use((req, res) => {
   return res.status(404).send("Not Found");
 });
 
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
+const LISTEN_HOST = "127.0.0.1";
+const SERVICE_NAME = String(process.env.SERVICE_NAME || "server");
+
+app.listen(PORT, LISTEN_HOST, () => {
+  const startedAt = new Date().toISOString();
+  console.log(
+    `[BOOT] service=${SERVICE_NAME} port=${PORT} host=${LISTEN_HOST} startedAt=${startedAt}`,
+  );
 });

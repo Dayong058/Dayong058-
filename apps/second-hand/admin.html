@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <title>二手市场管理后台</title>
+  <style>
+    /* 简洁的管理后台样式 */
+    .admin-container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .admin-table {
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      background: #f8f9fa;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="admin-container">
+    <h1>二手市场管理后台</h1>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>总商品数</h3>
+        <p id="totalItems">0</p>
+      </div>
+      <div class="stat-card">
+        <h3>今日新增</h3>
+        <p id="todayItems">0</p>
+      </div>
+      <div class="stat-card">
+        <h3>总用户数</h3>
+        <p id="totalUsers">0</p>
+      </div>
+      <div class="stat-card">
+        <h3>待审核</h3>
+        <p id="pendingItems">0</p>
+      </div>
+    </div>
+
+    <div class="admin-table">
+      <h2>商品管理</h2>
+      <table id="itemsTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>标题</th>
+            <th>价格</th>
+            <th>类型</th>
+            <th>发布时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="admin-table" style="margin-top: 30px;">
+      <h2>分类管理</h2>
+      <div style="padding: 20px;">
+        <form id="addCategoryForm">
+          <input type="text" name="name" placeholder="分类名称" required>
+          <input type="color" name="color" value="#118AB2">
+          <input type="text" name="icon" placeholder="图标emoji" value="📦">
+          <button type="submit">添加分类</button>
+        </form>
+      </div>
+      <table id="categoriesTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>名称</th>
+            <th>颜色</th>
+            <th>图标</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // 后台管理逻辑
+    async function loadAdminData() {
+      try {
+        const [items, users, categories] = await Promise.all([
+          fetch('/api/items?all=true').then(r => r.json()),
+          fetch('/api/users').then(r => r.json()),
+          fetch('/api/categories').then(r => r.json())
+        ]);
+
+        // 更新统计
+        document.getElementById('totalItems').textContent = items.length;
+        document.getElementById('totalUsers').textContent = users.length;
+
+        // 填充表格
+        populateItemsTable(items);
+        populateCategoriesTable(categories);
+      } catch (error) {
+        console.error('加载管理数据失败:', error);
+      }
+    }
+
+    function populateItemsTable(items) {
+      const tbody = document.querySelector('#itemsTable tbody');
+      tbody.innerHTML = '';
+
+      items.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+                    <td>${item.id.substring(0, 8)}...</td>
+                    <td>${item.title}</td>
+                    <td>¥${item.price}</td>
+                    <td><span class="${item.type === 'sell' ? 'sell-tag' : 'buy-tag'}">${item.type === 'sell' ? '出售' : '求购'}</span></td>
+                    <td>${new Date(item.createdAt).toLocaleDateString()}</td>
+                    <td>
+                        <button onclick="editItem('${item.id}')">编辑</button>
+                        <button onclick="deleteItem('${item.id}')" style="color: #ff6b6b;">删除</button>
+                    </td>
+                `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // 初始化
+    loadAdminData();
+  </script>
+</body>
+
+</html>

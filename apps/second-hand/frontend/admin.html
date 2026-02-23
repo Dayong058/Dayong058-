@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>二手市场管理后台</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body {
+      background: linear-gradient(180deg, #0b1220, #0f1b31);
+    }
+
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 16px;
+      border: 1px solid rgba(234, 240, 255, .10);
+    }
+
+    .table th,
+    .table td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(234, 240, 255, .10);
+      text-align: left;
+      color: rgba(234, 240, 255, .92);
+    }
+
+    .table th {
+      color: rgba(234, 240, 255, .70);
+      background: rgba(234, 240, 255, .06);
+    }
+
+    .row2 {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .mini {
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(234, 240, 255, .10);
+      background: rgba(18, 28, 51, .55);
+    }
+
+    .mini b {
+      font-size: 20px;
+      display: block;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="topbar" style="position:relative;top:0">
+      <div class="brand">
+        <div class="logo">🛠️</div>
+        <div>
+          <div class="title">二手市场后台</div>
+          <div class="sub">商品 / 用户 / 分类</div>
+        </div>
+      </div>
+      <a class="btn btn-ghost" href="/second-hand/index.html"
+        style="text-decoration:none;display:inline-flex;align-items:center;">返回前台</a>
+    </div>
+
+    <div class="row2" style="margin-top:12px;">
+      <div class="mini" style="flex:1;min-width:220px;">
+        <div style="color:rgba(234,240,255,.7)">总商品数</div>
+        <b id="totalItems">0</b>
+      </div>
+      <div class="mini" style="flex:1;min-width:220px;">
+        <div style="color:rgba(234,240,255,.7)">总用户数</div>
+        <b id="totalUsers">0</b>
+      </div>
+      <div class="mini" style="flex:2;min-width:320px;">
+        <div style="color:rgba(234,240,255,.7);margin-bottom:8px;">新增分类</div>
+        <form id="catForm" class="row2">
+          <input class="input" name="name" placeholder="分类名" required />
+          <input class="input" name="icon" placeholder="图标(emoji)" value="📦" />
+          <input class="input" name="color" placeholder="颜色(#118AB2)" value="#118AB2" />
+          <button class="btn" type="submit">添加</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:12px;">
+      <div style="font-weight:900;margin-bottom:10px;">商品管理</div>
+      <table class="table" id="itemsTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>标题</th>
+            <th>价格</th>
+            <th>类型</th>
+            <th>状态</th>
+            <th>时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="panel" style="margin-top:12px;">
+      <div style="font-weight:900;margin-bottom:10px;">用户列表</div>
+      <table class="table" id="usersTable">
+        <thead>
+          <tr>
+            <th>TelegramId</th>
+            <th>用户名</th>
+            <th>加入时间</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="js/admin.js"></script>
+</body>
+
+</html>

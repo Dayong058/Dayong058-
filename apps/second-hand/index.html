@@ -1,0 +1,377 @@
+html
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>二手买卖市场 | 聚合网插件</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/9.2.0/swiper-bundle.min.css">
+  <style>
+    /* ✅ 发布成功定位高亮：卡片闪一下 */
+    .item-card.flash,
+    .items-grid>div.flash {
+      outline: 2px solid rgba(255, 107, 107, .55);
+      box-shadow: 0 0 0 8px rgba(255, 107, 107, .16), 0 24px 60px rgba(17, 24, 39, .18);
+      transform: translateY(-2px) scale(1.01);
+      transition: transform 220ms cubic-bezier(.2, .8, .2, 1), box-shadow 220ms cubic-bezier(.2, .8, .2, 1);
+      animation: flashPulse 900ms cubic-bezier(.2, .8, .2, 1) 1;
+    }
+
+    @keyframes flashPulse {
+      0% {
+        filter: brightness(1);
+      }
+
+      35% {
+        filter: brightness(1.07);
+      }
+
+      100% {
+        filter: brightness(1);
+      }
+    }
+
+    button,
+    .entry-card,
+    .item-card {
+      -webkit-tap-highlight-color: transparent;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 主容器 - 适配聚合网 -->
+  <div class="market-container" id="marketApp">
+    <!-- 顶部推广区 / 广告位 -->
+    <div class="ad-hero" id="adHero">
+      <div class="ad-swiper" id="adSwiper">
+        <!-- JS 动态注入广告 -->
+      </div>
+      <div class="ad-dots" id="adDots"></div>
+    </div>
+
+    <!-- 顶部轮播 -->
+    <div class="swiper-container">
+      <div class="swiper-wrapper">
+        <div class="swiper-slide" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);">
+          <div class="slide-content">
+            <h3>轻松买卖</h3>
+            <p>发布闲置，发现宝贝</p>
+          </div>
+        </div>
+        <div class="swiper-slide" style="background: linear-gradient(135deg, #4ECDC4, #44A08D);">
+          <div class="slide-content">
+            <h3>安全保障</h3>
+            <p>诚信交易，放心买卖</p>
+          </div>
+        </div>
+        <div class="swiper-slide" style="background: linear-gradient(135deg, #FFD166, #FFB347);">
+          <div class="slide-content">
+            <h3>本地交易</h3>
+            <p>同城见面，快速成交</p>
+          </div>
+        </div>
+      </div>
+      <div class="swiper-pagination"></div>
+    </div>
+
+    <!-- 移动端入口卡片（交错布局） -->
+    <div class="mobile-entry-cards stagger">
+      <div class="entry-card left" onclick="openPublishModal('sell')">
+        <div class="entry-icon" style="background:#FF6B6B;">
+          <i class="fas fa-upload"></i>
+        </div>
+        <h4>我要出手</h4>
+        <p>发布闲置物品</p>
+      </div>
+
+      <div class="entry-card right" onclick="openPublishModal('buy')">
+        <div class="entry-icon" style="background:#4ECDC4;">
+          <i class="fas fa-shopping-cart"></i>
+        </div>
+        <h4>我要淘宝</h4>
+        <p>寻找心仪宝贝</p>
+      </div>
+
+      <!-- 统计小卡片（替换原“我来溜达”） -->
+      <div class="entry-card left stats-card" onclick="showSection('browse')">
+        <div class="stats-grid">
+          <div class="stat-row">
+            <span class="stat-ico">✅</span>
+            <span class="stat-k">今日签到</span>
+            <span class="stat-v" id="statSign">123</span><span class="stat-u">人</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-ico">👀</span>
+            <span class="stat-k">浏览量</span>
+            <span class="stat-v" id="statViews">1234</span><span class="stat-u">次</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-ico">🟢</span>
+            <span class="stat-k">在线人数</span>
+            <span class="stat-v" id="statOnline">12345</span><span class="stat-u">位</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 搜索区域 -->
+    <div class="search-section">
+      <div class="search-bar">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="搜索商品名称或描述...">
+        <button onclick="performSearch()">搜索</button>
+        <button type="button" onclick="openPublishModal('sell')" style="margin-left:8px;">发布</button>
+      </div>
+
+      <div class="filter-options">
+        <select id="categoryFilter">
+          <option value="">所有分类</option>
+        </select>
+
+        <div class="price-range">
+          <input type="number" id="minPrice" placeholder="最低价">
+          <span>至</span>
+          <input type="number" id="maxPrice" placeholder="最高价">
+        </div>
+
+        <input type="text" id="locationFilter" placeholder="位置">
+
+        <select id="typeFilter">
+          <option value="">全部类型</option>
+          <option value="sell">出售</option>
+          <option value="buy">求购</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 商品网格 -->
+    <div class="items-grid" id="itemsGrid">
+      <!-- 商品卡片将通过JS动态加载 -->
+    </div>
+
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+      <button class="nav-btn active" onclick="showSection('home')">
+        <i class="fas fa-home"></i>
+        <span>首页</span>
+      </button>
+      <button class="nav-btn" onclick="showSection('favorites')">
+        <i class="fas fa-heart"></i>
+        <span>收藏</span>
+      </button>
+      <button class="nav-btn" onclick="showSection('chat')">
+        <i class="fas fa-comments"></i>
+        <span>客服</span>
+      </button>
+      <button class="nav-btn" onclick="showSection('profile')">
+        <i class="fas fa-user"></i>
+        <span>我的</span>
+      </button>
+    </div>
+
+    <!-- 商品详情模态框 -->
+    <div class="modal" id="itemModal">
+      <div class="modal-content">
+        <button class="close-modal" onclick="closeModal()">&times;</button>
+
+        <div class="modal-header">
+          <span class="item-type sell-tag" id="modalTypeTag">出售</span>
+          <h2 id="modalTitle"></h2>
+          <div class="item-price" id="modalPrice"></div>
+        </div>
+
+        <div class="image-gallery">
+          <div class="main-image">
+            <img id="modalMainImage" src="" alt="商品主图">
+          </div>
+          <div class="thumbnail-grid" id="thumbnailGrid"></div>
+        </div>
+
+        <div class="item-details">
+          <div class="detail-row">
+            <span class="detail-label">商品ID:</span>
+            <span class="detail-value" id="modalId"></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">发布时间:</span>
+            <span class="detail-value" id="modalTime"></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">商品名称:</span>
+            <span class="detail-value" id="modalTitle2"></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">价　　格:</span>
+            <span class="detail-value" id="modalPrice2"></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">交易方式:</span>
+            <span class="detail-value" id="modalTransaction"></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">成　　色:</span>
+            <span class="detail-value" id="modalCondition"></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">位　　置:</span>
+            <span class="detail-value" id="modalLocation"></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">描　　述:</span>
+            <p class="item-description" id="modalDescription"></p>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="contact-btn" onclick="contactSeller()">
+            <i class="fas fa-comment"></i> 联系卖家
+          </button>
+          <button class="favorite-btn" onclick="toggleFavorite()">
+            <i class="far fa-heart"></i> 收藏
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 发布商品模态框 -->
+    <div class="modal" id="publishModal">
+      <div class="modal-content">
+        <button class="close-modal" onclick="closePublishModal()">&times;</button>
+        <h2>发布商品</h2>
+
+        <form id="publishForm" enctype="multipart/form-data">
+          <div class="form-group">
+            <label>类型 *</label>
+            <div class="type-selector">
+              <label class="type-option">
+                <input type="radio" name="type" value="sell" checked>
+                <span>我要出售</span>
+              </label>
+              <label class="type-option">
+                <input type="radio" name="type" value="buy">
+                <span>我要购买</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>商品标题 *</label>
+            <input type="text" name="title" required maxlength="50">
+          </div>
+
+          <div class="form-group">
+            <label>价格 (元) *</label>
+            <input type="number" name="price" step="0.01" required>
+          </div>
+
+          <div class="form-group">
+            <label>分类 *</label>
+            <select name="category" required>
+              <option value="">请选择分类</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>成色</label>
+            <select name="condition">
+              <option value="全新">全新</option>
+              <option value="几乎全新">几乎全新</option>
+              <option value="轻微使用">轻微使用</option>
+              <option value="明显使用">明显使用</option>
+              <option value="需要维修">需要维修</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>交易方式</label>
+            <select name="transactionType">
+              <option value="面交">面交</option>
+              <option value="邮寄">邮寄</option>
+              <option value="均可">均可</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>位置 *</label>
+            <input type="text" name="location" required>
+          </div>
+
+          <div class="form-group">
+            <label>详细描述 *</label>
+            <textarea name="description" rows="4" required maxlength="500"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>上传图片 (最多9张)</label>
+            <input type="file" name="images" accept="image/*" multiple>
+            <small class="help-text">第一张将作为封面图</small>
+          </div>
+
+          <div class="form-group">
+            <label>上传视频 (可选，最长15秒)</label>
+            <input type="file" name="video" accept="video/*">
+            <small class="help-text">支持MP4格式，最大10MB</small>
+          </div>
+
+          <div class="form-group">
+            <label>Telegram ID</label>
+            <input type="text" name="telegramId" id="telegramIdInput" placeholder="将自动识别您的Telegram ID">
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" onclick="closePublishModal()">取消</button>
+            <button type="submit" class="btn-primary">发布商品</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 脚本引入 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/9.2.0/swiper-bundle.min.js"></script>
+  <script src="js/main.js"></script>
+</body>
+
+</html>
+
+<!-- 在聚合网页面中添加 -->
+<div id="market-container"></div>
+
+<script>
+  // 动态加载二手市场插件
+  function loadMarketPlugin() {
+    const container = document.getElementById('market-container');
+    container.innerHTML = `
+        <iframe
+            src="/second-hand/index.html?tgid=${window.Telegram?.WebApp?.initDataUnsafe?.user?.id || ''}"
+            style="width: 100%; height: 600px; border: none; border-radius: 15px;"
+            allow="camera; microphone"
+        ></iframe>
+    `;
+  }
+
+  // 或者直接跳转
+  function openMarketInTelegram() {
+    if (window.Telegram?.WebApp) {
+      Telegram.WebApp.openLink('/second-hand/index.html');
+    } else {
+      window.open('/second-hand/index.html', '_blank');
+    }
+  }
+
+  function getTgid() {
+    const u = new URL(location.href);
+    const qid = u.searchParams.get("tgid");
+    if (qid) return qid;
+    return window.Telegram?.WebApp?.initDataUnsafe?.user?.id || "";
+  }
+  function goPublish(type) {
+    const tgid = getTgid();
+    const target = type === 'buy' ? '/second-hand/publish-buy.html' : '/second-hand/publish-sell.html';
+    location.href = `${target}?tgid=${encodeURIComponent(tgid)}`;
+  }
+</script>

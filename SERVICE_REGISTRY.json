@@ -1,0 +1,15 @@
+{
+  "services": {
+    "server": {
+      "port": 3000,
+      "host": "127.0.0.1",
+      "skipPortCheck": false
+    },
+    "pm2-health-monitor": {
+      "port": 0,
+      "host": "127.0.0.1",
+      "skipPortCheck": true
+    }
+  }
+}
+

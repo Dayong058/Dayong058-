@@ -153,7 +153,7 @@ function mapQqLinkToTakeoutEntry(url) {
     if (u.origin !== TAKEOUT_ORIGIN) return "";
     if (!/\/index\.html$/i.test(u.pathname)) return "";
     return buildTakeoutEntryUrl({
-      shop: u.searchParams.get("shop"),
+      shop: u.searchParams.get("shop") || u.searchParams.get("shopId"),
       category: u.searchParams.get("category"),
       kw: u.searchParams.get("kw"),
     });
@@ -195,7 +195,7 @@ function shouldUseInAppRoute(urlObj) {
 
 function isHousingOrSecondHandLabel(label = "") {
   const text = normalizeText(label);
-  return /房屋|租售|租赁|二手/i.test(text);
+  return /房屋|租售|租赁/i.test(text);
 }
 
 function openUrl(url, target = "_self") {
@@ -274,12 +274,12 @@ function normalizeTakeoutLink(link, id = "") {
   try {
     const u = new URL(raw, TAKEOUT_ORIGIN);
     if (/\/apps\/takeout\/entry\.html$/i.test(u.pathname)) {
-      const shop = u.searchParams.get("shop");
+      const shop = u.searchParams.get("shop") || u.searchParams.get("shopId");
       if (shop) return buildTakeoutEntryUrl({ shop });
       if (sid) return buildTakeoutEntryUrl({ shop: sid });
     }
     if (u.origin === TAKEOUT_ORIGIN && /\/index\.html$/i.test(u.pathname)) {
-      const shop = u.searchParams.get("shop");
+      const shop = u.searchParams.get("shop") || u.searchParams.get("shopId");
       const category = u.searchParams.get("category");
       const kw = u.searchParams.get("kw");
       if (shop) return buildTakeoutEntryUrl({ shop });
@@ -298,7 +298,9 @@ function extractShopIdFromLink(link) {
   if (!raw) return "";
   try {
     const u = new URL(raw, window.location.origin);
-    const byQuery = normalizeText(u.searchParams.get("shop"));
+    const byQuery =
+      normalizeText(u.searchParams.get("shop")) ||
+      normalizeText(u.searchParams.get("shopId"));
     if (byQuery) return byQuery;
     const byPath = u.pathname.match(/^\/store\/([^\/?#]+)/i);
     if (byPath) return normalizeText(byPath[1]);
@@ -734,7 +736,7 @@ async function loadMerchantRegistry() {
   try {
     const list = await fetchStoreList();
     MERCHANT_REGISTRY = list.map((x) => ({
-      id: normalizeText(x.id),
+      id: normalizeText(x.shopId || x.id),
       name: normalizeText(x.name),
       link: normalizeText(x.link),
     }));
@@ -806,13 +808,13 @@ async function initHotRecommend() {
     const list = Array.isArray(payload?.list) ? payload.list : [];
     HOT_RECOMMEND_LIST = list
       .map((x) => ({
-        id: x.id || x.shopId || "",
+        id: x.shopId || x.id || "",
         name: x.title || x.name || "推荐商家",
         icon:
           normalizeTakeoutImageUrl(x.img || x.image) ||
           LOCAL_IMAGES.defaults.hot,
         desc: `${x.title || x.name || "推荐商家"} / ${x.desc || ""}`,
-        link: normalizeTakeoutLink(x.link, x.id || x.shopId || ""),
+        link: normalizeTakeoutLink(x.link, x.shopId || x.id || ""),
         btnText: pickHotActionText({
           title: x.title || x.name || "",
           btnText: x.btnText || "",
@@ -884,14 +886,14 @@ async function initStoreRecommend() {
 
     STORE_RECOMMEND_LIST = list
       .map((x) => ({
-        id: x.id || "",
+        id: x.shopId || x.id || "",
         name: x.name || "",
         category: x.category || x.type || "",
         desc: x.desc || "",
         img: normalizeTakeoutImageUrl(
           x.img || x.image || x.logo || x.cover || x.avatar || "",
         ),
-        link: normalizeTakeoutLink(x.link, x.id || ""),
+        link: normalizeTakeoutLink(x.link, x.shopId || x.id || ""),
         btnText: sanitizeStoreButtonText(x.btnText),
       }))
       .filter((x) => x.name);
@@ -1851,12 +1853,17 @@ function initEventListeners() {
       if (!href) return;
 
       const label = this.getAttribute("aria-label") || "";
+      const isUsedEntry =
+        href.includes("tab=used") || href.includes("/apps/second-hand/");
+      if (isUsedEntry) {
+        return openUrl(href, "_self");
+      }
       if (isHousingOrSecondHandLabel(label)) {
         return openUrl(HOUSING_SECONDHAND_ENTRY_PATH, "_self");
       }
       if (this.dataset.entry === "hotel-booking" || /酒店|酒店/.test(label)) {
         switchInlineTab("hotel").catch(() => {
-          openUrl("/public/hotel.html", "_self");
+          openUrl("/hotel.html", "_self");
         });
         return;
       }
@@ -1969,7 +1976,7 @@ function initEventListeners() {
     switchInlineTab("activity").catch(() => openUrl("/activity.html", "_self"));
   } else if (initialTab === "hotel") {
     switchInlineTab("hotel").catch(() =>
-      openUrl("/public/hotel.html", "_self"),
+      openUrl("/hotel.html", "_self"),
     );
   } else if (initialTab === "my") {
     switchInlineTab("my").catch(() => {});

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -14,7 +15,11 @@
       --line: #e5e7eb;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     body {
       font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
@@ -23,7 +28,8 @@
       min-height: 100vh;
     }
 
-    html, body {
+    html,
+    body {
       height: 100%;
     }
 
@@ -109,7 +115,9 @@
     }
 
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     iframe {
@@ -123,6 +131,7 @@
   </style>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
+
 <body>
   <div class="shell">
     <header class="topbar">
@@ -137,7 +146,8 @@
         <div class="spinner"></div>
         <div>外卖页面加载中...</div>
       </div>
-      <iframe id="takeoutFrame" title="外卖业务页面" loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      <iframe id="takeoutFrame" title="外卖业务页面" loading="eager"
+        referrerpolicy="strict-origin-when-cross-origin"></iframe>
     </main>
   </div>
 
@@ -179,21 +189,8 @@
 
       function shouldForceTopNavigation(urlObj) {
         const host = safeValue(urlObj?.hostname).toLowerCase();
-        if (!host) return false;
-        // Keep first-party domains inside current WebApp flow to reduce
-        // the chance of Telegram client handing off to an external browser.
-        if (
-          host === "fangz9999.vip" ||
-          host === "qq.fangz9999.vip" ||
-          host === "miniapp.fangz9999.vip" ||
-          host === "localhost" ||
-          host === "127.0.0.1" ||
-          host.endsWith(".fangz9999.vip")
-        ) {
-          return false;
-        }
-        // Only force top navigation for non-first-party domains.
-        return true;
+        // Non-qq domains often deny iframe embedding via X-Frame-Options/CSP.
+        return host && host !== "qq.fangz9999.vip";
       }
 
       function extractBrokenEntryQueryUrl() {
@@ -328,4 +325,5 @@
     })();
   </script>
 </body>
+
 </html>
